@@ -14,8 +14,8 @@ import { runWizard } from "./wizard.ts";
 const program = new Command();
 
 program
-  .name("umbrik")
-  .description("Wrap any project in a polished design system: palettes, Google Fonts, vibes. Export CSS vars, Tailwind v4, JSON tokens.")
+  .name("kernic")
+  .description("Kern your whole app: a polished design system: palettes, Google Fonts, vibes. Export CSS vars, Tailwind v4, JSON tokens.")
   .version("0.1.0");
 
 // Default action = wizard
@@ -50,7 +50,7 @@ program
     }
     const ds = buildFromVibe(normalizedName, vibe);
     await saveSystem(ds);
-    p.outro(`Sealed "${normalizedName}" (${vibe.label}). Try: umbrik show ${normalizedName}`);
+    p.outro(`Kerned "${normalizedName}" (${vibe.label}). Try: kernic show ${normalizedName}`);
   });
 
 program
@@ -60,7 +60,7 @@ program
   .action(async () => {
     const systems = await listSystems();
     if (systems.length === 0) {
-      p.log.message("No design systems yet. Run `umbrik` to seal one.");
+      p.log.message("No design systems yet. Run `kernic` to start.");
       return;
     }
     p.log.message(
@@ -80,7 +80,7 @@ program
   .action(async (name: string) => {
     const ds = await loadSystem(name);
     if (!ds) {
-      p.log.error(`Not found: "${name}". Try \`umbrik list\`.`);
+      p.log.error(`Not found: "${name}". Try \`kernic list\`.`);
       process.exit(1);
     }
     p.intro(`${ds.name} — vibe: ${ds.vibe}`);
@@ -107,7 +107,7 @@ program
   .action(async (name: string) => {
     const ds = await loadSystem(name);
     if (!ds) {
-      p.log.error(`Not found: "${name}". Try \`umbrik list\`.`);
+      p.log.error(`Not found: "${name}". Try \`kernic list\`.`);
       process.exit(1);
     }
     console.log(renderPalette(ds.colors));
@@ -122,7 +122,7 @@ program
   .action(async (name: string, opts: { format: string; out?: string }) => {
     const ds = await loadSystem(name);
     if (!ds) {
-      p.log.error(`Not found: "${name}". Try \`umbrik list\`.`);
+      p.log.error(`Not found: "${name}". Try \`kernic list\`.`);
       process.exit(1);
     }
 

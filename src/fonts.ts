@@ -71,7 +71,7 @@ export async function getFontCatalog(): Promise<{ fonts: FontInfo[]; live: boole
 
   try {
     const res = await fetch("https://fonts.google.com/metadata/fonts", {
-      headers: { "User-Agent": "umbrik/0.1" },
+      headers: { "User-Agent": "kernic/0.1" },
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);

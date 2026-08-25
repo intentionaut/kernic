@@ -5,32 +5,34 @@ import type { DesignSystem } from "./types.ts";
 
 let migrated = false;
 
-/** One-time migration from the pre-rename ~/.config/dsforge directory. */
+/** One-time migration chain: ~/.config/dsforge and ~/.config/umbrik → ~/.config/kernic */
 async function migrateLegacy(): Promise<void> {
   if (migrated) return;
   migrated = true;
-  const legacy = join(homedir(), ".config", "dsforge");
-  const dir = join(homedir(), ".config", "umbrik");
-  try {
-    await access(legacy);
-  } catch {
-    return;
-  }
-  const existing = await readdir(join(dir, "systems")).catch(() => [] as string[]);
-  if (existing.length === 0) {
-    await mkdir(dir, { recursive: true });
-    for (const entry of ["systems", "fonts-cache.json"]) {
-      try {
-        await rename(join(legacy, entry), join(dir, entry));
-      } catch {}
+  const dir = join(homedir(), ".config", "kernic");
+  for (const legacyName of ["dsforge", "umbrik"]) {
+    const legacy = join(homedir(), ".config", legacyName);
+    try {
+      await access(legacy);
+    } catch {
+      continue;
     }
+    const existing = await readdir(join(dir, "systems")).catch(() => [] as string[]);
+    if (existing.length === 0) {
+      await mkdir(dir, { recursive: true });
+      for (const entry of ["systems", "fonts-cache.json"]) {
+        try {
+          await rename(join(legacy, entry), join(dir, entry));
+        } catch {}
+      }
+    }
+    await rm(legacy, { recursive: true, force: true }).catch(() => {});
   }
-  await rm(legacy, { recursive: true, force: true }).catch(() => {});
 }
 
 export async function configDir(): Promise<string> {
   await migrateLegacy();
-  const dir = join(homedir(), ".config", "umbrik");
+  const dir = join(homedir(), ".config", "kernic");
   await mkdir(dir, { recursive: true });
   return dir;
 }
@@ -59,7 +61,10 @@ export async function loadSystem(name: string): Promise<DesignSystem | null> {
   if (!normalized) return null;
   try {
     const raw = await readFile(join(await systemsDir(), `${normalized}.json`), "utf8");
-    return JSON.parse(raw) as DesignSystem;
+    const ds = JSON.parse(raw) as DesignSystem;
+    // Backfill pre-schema files; unknown extension keys are preserved for premium/cloud features.
+    if (!ds.schemaVersion) ds.schemaVersion = 1;
+    return ds;
   } catch {
     return null;
   }

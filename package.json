@@ -1,19 +1,19 @@
 {
-  "name": "umbrik",
+  "name": "kernic",
   "version": "0.1.0",
-  "description": "Wrap any project in a polished design system — palette picker, Google Fonts, vibes, forged in the terminal. Export CSS vars, Tailwind v4 theme, JSON tokens.",
+  "description": "Kern your whole app — design systems from the terminal. Palette picker, Google Fonts, vibes; free forever CLI, export CSS vars / Tailwind v4 / JSON tokens.",
   "type": "module",
   "bin": {
-    "umbrik": "./dist/index.js",
-    "um": "./dist/index.js"
+    "kernic": "./dist/index.js",
+    "kn": "./dist/index.js"
   },
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/intentionaut/umbrik.git"
+    "url": "git+https://github.com/intentionaut/kernic.git"
   },
-  "homepage": "https://github.com/intentionaut/umbrik#readme",
-  "bugs": "https://github.com/intentionaut/umbrik/issues",
+  "homepage": "https://github.com/intentionaut/kernic#readme",
+  "bugs": "https://github.com/intentionaut/kernic/issues",
   "author": "intentionaut",
   "scripts": {
     "dev": "tsx src/index.ts",
@@ -25,7 +25,7 @@
     "node": ">=20"
   },
   "keywords": [
-    "umbrik",
+    "kernic",
     "design-system",
     "design-tokens",
     "cli",
@@ -34,7 +34,8 @@
     "css",
     "google-fonts",
     "palette",
-    "vibe-coding"
+    "vibe-coding",
+    "w3c-design-tokens"
   ],
   "license": "MIT",
   "dependencies": {

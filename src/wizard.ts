@@ -176,7 +176,7 @@ async function pickFont(
 }
 
 export async function runWizard(nameArg?: string): Promise<DesignSystem> {
-  p.intro("umbrik — wrap your project in polish");
+  p.intro("kernic — kern your whole app");
 
   // 1. Name
   let name = nameArg?.trim();
@@ -251,6 +251,7 @@ export async function runWizard(nameArg?: string): Promise<DesignSystem> {
   const radius = RADIUS_PRESETS[radiusStyle];
 
   const ds: DesignSystem = {
+    schemaVersion: 1,
     name: normalizedName,
     vibe: vibe?.id ?? "custom",
     createdAt: new Date().toISOString(),
@@ -274,11 +275,11 @@ export async function runWizard(nameArg?: string): Promise<DesignSystem> {
 
   const confirmed = check(await p.confirm({ message: "Forge it?", initialValue: true }));
   if (!confirmed) {
-    p.cancel("Discarded. Run umbrik again anytime.");
+    p.cancel("Discarded. Run kernic again anytime.");
     process.exit(0);
   }
 
   await saveSystem(ds);
-  p.outro(`Saved "${normalizedName}". Try: umbrik export ${normalizedName} --format tailwind`);
+  p.outro(`Saved "${normalizedName}". Try: kernic export ${normalizedName} --format tailwind`);
   return ds;
 }

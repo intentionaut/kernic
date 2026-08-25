@@ -66,7 +66,7 @@ function scaleVars(ds: DesignSystem): string[] {
 /** Plain CSS custom properties, ready to paste into a global stylesheet. */
 export function exportCss(ds: DesignSystem): string {
   return [
-    `/* umbrik — "${ds.name}" (vibe: ${ds.vibe}) */`,
+    `/* kernic — "${ds.name}" (vibe: ${ds.vibe}) */`,
     `@import url("${fontImportUrl(ds.fonts.heading)}");`,
     `@import url("${fontImportUrl(ds.fonts.body)}");`,
     `@import url("${fontImportUrl(ds.fonts.mono)}");`,
@@ -113,7 +113,7 @@ export function exportTailwind(ds: DesignSystem): string {
     `  --color-border-default: ${ds.semantic.border.light};`
   );
   return [
-    `/* umbrik — "${ds.name}" Tailwind v4 theme (vibe: ${ds.vibe}) */`,
+    `/* kernic — "${ds.name}" Tailwind v4 theme (vibe: ${ds.vibe}) */`,
     `@import "tailwindcss";`,
     `@import url("${fontImportUrl(ds.fonts.heading)}");`,
     `@import url("${fontImportUrl(ds.fonts.body)}");`,
@@ -149,7 +149,7 @@ export function exportFonts(ds: DesignSystem): string {
   );
   const imports = families.map((f) => `@import url("${fontImportUrl(f)}");`);
   return [
-    `<!-- umbrik — "${ds.name}" Google Fonts -->`,
+    `<!-- kernic — "${ds.name}" Google Fonts -->`,
     ...preconnect,
     ...stylesheets,
     "",

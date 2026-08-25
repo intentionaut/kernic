@@ -1,31 +1,43 @@
-# umbrik
+# kernic
 
-**Wrap any project in a polished design system — from the terminal.**
+**Kern your whole app.**
 
-*ümbrik* is Estonian for *envelope*. Your app is the letter; umbrik makes the envelope worth opening.
+In typography, *kerning* is the adjustment of space between letters until text feels right — invisible when done well, amateurish when ignored. kernic does the same for your entire application: one design system, tuned once from the terminal, applied everywhere.
 
-Pick a vibe, tune a palette, choose Google Fonts, then export your tokens as CSS custom properties, a Tailwind v4 `@theme`, JSON, or font imports. Forge once, reuse everywhere.
+Pick a vibe, tune a palette in your terminal, choose Google Fonts, then export tokens as CSS custom properties, a Tailwind v4 `@theme`, JSON, or font imports.
 
-## Why
+## Free forever, by design
 
-Vibe coders ship fast — and it shows in the default-blue buttons and system fonts. umbrik gives every project an intentional identity in under two minutes, without opening a design tool:
+The CLI is and always will be free and open source (MIT). It generates complete design systems locally on your machine:
 
 - **10 curated vibes** — Cyberpunk, Brutalist, Soft Pastel, Corporate Clean, Earthy, Luxury, Playful, Retro 70s, Mono Minimal, Ocean Calm
-- **Palette picker in your terminal** — live ANSI swatches, hue shifting, harmony rules (analogous / complementary / triadic / monochrome), tinted neutrals
-- **Real color science** — ramps are generated in [OKLCH](https://oklch.com/) with automatic sRGB gamut fitting, so every step from 50 to 950 stays perceptually even
-- **All ~2k Google Fonts** — searchable live (bundled catalog fallback when offline)
-- **Pipe-friendly exports** — stdout by default, files with `-o`
+- **Terminal palette picker** — live ANSI swatches, hue shifting, harmony rules (analogous / complementary / triadic / monochrome), tinted neutrals
+- **Real color science** — ramps generated in [OKLCH](https://oklch.com/) with automatic sRGB gamut fitting
+- **All ~2k Google Fonts** — live search with bundled offline fallback
+- **Pipe-friendly exports** — `css` · `tailwind` · `json` · `fonts` · stdout by default
+
+### Roadmap: what's free vs. paid
+
+| | CLI (free, MIT) | Cloud Studio (paid) |
+| --- | --- | --- |
+| Palette + font generation | ✅ | ✅ |
+| CSS / Tailwind / JSON exports | ✅ | ✅ |
+| Local token storage | ✅ | ✅ |
+| Visual editor (browser) | — | ✅ |
+| Motion & animation tokens | — | ✅ |
+| Shadows, depth & rhythm scales | — | ✅ |
+| Multi-brand management | — | ✅ |
+| Sync across projects & repos | — | ✅ |
+| Version history & rollbacks | — | ✅ |
+
+The token format (`schemaVersion` + extensible `extensions`) is designed so premium layers never break free-tier files. Your local systems stay yours, in plain JSON, forever.
 
 ## Install
 
 ```bash
-npm install -g umbrik
-```
-
-or run it straight away:
-
-```bash
-npx umbrik
+npm install -g kernic
+# or run instantly:
+npx kernic
 ```
 
 Requires Node 20+.
@@ -33,85 +45,60 @@ Requires Node 20+.
 ## Quick start
 
 ```bash
-umbrik            # opens the interactive wizard
-um                # same thing, lazier
+kernic          # interactive wizard
+kn              # same, shorter
 ```
 
-The wizard walks you through naming your system, picking a vibe, tuning the palette with live previews, choosing heading/body/mono fonts, and setting radius + type scale. Everything is saved as plain JSON in `~/.config/umbrik/systems/` — easy to back up, version, or share.
+The wizard walks through naming, vibe, palette tuning with live previews, heading/body/mono fonts, radius and type scale. Systems are saved as plain JSON in `~/.config/kernic/systems/`.
 
 ### Skip the wizard
 
 ```bash
-umbrik create launch-page --vibe corporate-clean --yes
+kernic create launch-page --vibe corporate-clean --yes
 ```
 
-Available vibes: `cyberpunk` · `brutalist` · `soft-pastel` · `corporate-clean` · `earthy` · `luxury` · `playful` · `retro` · `mono-minimal` · `ocean-calm`
+Vibes: `cyberpunk` · `brutalist` · `soft-pastel` · `corporate-clean` · `earthy` · `luxury` · `playful` · `retro` · `mono-minimal` · `ocean-calm`
 
 ## Commands
 
 | Command | What it does |
 | --- | --- |
-| `umbrik` | Interactive wizard |
-| `umbrik create <name> [--vibe <id>]` | Seal a new design system |
-| `umbrik list` | List saved systems |
-| `umbrik show <name>` | Full spec + swatches |
-| `umbrik palette <name>` | Just the swatches |
-| `umbrik export <name> -f <format>` | Output to stdout |
-| `umbrik export <name> -f all -o ./design-system` | Write all token files |
-| `umbrik delete <name>` | Remove a system |
-
-Formats: `css` · `tailwind` · `json` · `fonts` · `all`
+| `kernic` | Interactive wizard |
+| `kernic create <name> [--vibe <id>]` | Create a new system |
+| `kernic list` | List saved systems |
+| `kernic show <name>` | Full spec + swatches |
+| `kernic palette <name>` | Just the swatches |
+| `kernic export <name> -f <format>` | Output to stdout |
+| `kernic export <name> -f all -o ./design-system` | Write all token files |
+| `kernic delete <name>` | Remove a system |
 
 ## Using it in a project
 
 ```bash
 # Tailwind v4 app.css
-umbrik export midnight-neon -f tailwind > src/app.css
+kernic export midnight-neon -f tailwind > src/app.css
 
 # Plain CSS vars anywhere
-umbrik export midnight-neon -f css >> styles/global.css
+kernic export midnight-neon -f css >> styles/global.css
 
 # Machine-readable tokens for tools and AI agents
-umbrik export midnight-neon -f json > design/tokens.json
-
-# Everything at once
-umbrik export midnight-neon -f all -o ./design-system
-```
-
-## Example
-
-```bash
-$ um create launch --vibe ocean-calm --yes
-Sealed "launch" (Ocean Calm). Try: umbrik show launch
-
-$ um palette launch
-primary  ▓▓▓▓▓▓▓▓▓▓▓   #ecfdfc → #042f2e
-accent   ▓▓▓▓▓▓▓▓▓▓▓   ...
-neutral  ▓▓▓▓▓▓▓▓▓▓▓   ...
+kernic export midnight-neon -f json > design/tokens.json
 ```
 
 ## Development
 
 ```bash
-git clone https://github.com/intentionaut/umbrik.git
-cd umbrik
-npm install
+git clone https://github.com/intentionaut/kernic.git
+cd kernic && npm install
 npm run dev      # CLI from source via tsx
 npm run build    # tsc → dist/
 ```
 
-Project layout:
-
-- `src/color.ts` — sRGB/Hex/OKLCH conversions, ramp + harmony generation
-- `src/vibes.ts` — curated presets (seeds, fonts, radius, type ratio)
-- `src/fonts.ts` — Google Fonts catalog fetcher (24h cache) + bundled fallback
-- `src/wizard.ts` — interactive flow (@clack/prompts)
-- `src/export.ts` — CSS / Tailwind v4 / fonts exporters
-- `src/storage.ts` — save/load/list/delete in `~/.config/umbrik`
+Layout: `src/color.ts` (OKLCH engine) · `src/vibes.ts` (presets) · `src/fonts.ts` (Google Fonts) · `src/wizard.ts` (interactive flow) · `src/export.ts` (exporters) · `src/storage.ts` (~/.config/kernic)
 
 ## Contributing
 
-PRs welcome! Good first issues: more vibe presets, additional export targets (Figma tokens, SCSS), and a browser-based visual editor launched from the CLI.
+PRs welcome — especially new vibes, export targets (SCSS, Figma tokens), and W3C design-tokens output. The cloud Studio lives in a separate private repo; this codebase stays 100% MIT.
 
 ## License
 

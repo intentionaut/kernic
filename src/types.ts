@@ -19,6 +19,8 @@ export interface Fonts {
 }
 
 export interface DesignSystem {
+  /** Token format version — premium/cloud features extend this schema without breaking older files. */
+  schemaVersion: 1;
   name: string;
   vibe: string;
   createdAt: string;
@@ -40,6 +42,8 @@ export interface DesignSystem {
     xl: string;
   };
   typeScale: { ratio: number; baseRem: number };
+  /** Reserved for premium extensions (motion, shadows, depth, rhythm). Free CLI preserves unknown keys on read/write. */
+  extensions?: Record<string, unknown>;
 }
 
 export const RAMP_STOPS = ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"] as const;

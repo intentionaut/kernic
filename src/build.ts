@@ -30,6 +30,7 @@ export function buildFromVibe(name: string, vibe: Vibe, fonts?: Partial<DesignSy
   const colors = rampsFromVibe(vibe);
   const radius = RADIUS_PRESETS[vibe.radius];
   return {
+    schemaVersion: 1,
     name,
     vibe: vibe.id,
     createdAt: new Date().toISOString(),
