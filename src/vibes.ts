@@ -17,64 +17,46 @@ export interface Vibe {
 
 export const VIBES: Vibe[] = [
   {
-    id: "cyberpunk", label: "Cyberpunk", description: "Neon on near-black. Sharp edges, high voltage.",
-    primarySeed: "#ff2d95", accentSeed: "#00e5ff", neutralTintHue: 280,
-    darkModeDefault: true, radius: "sharp", typeRatio: 1.333,
-    fonts: { heading: "Space Grotesk", body: "IBM Plex Sans", mono: "IBM Plex Mono" },
-  },
-  {
-    id: "brutalist", label: "Brutalist", description: "Raw black & white, one acid accent, zero apology.",
-    primarySeed: "#111111", accentSeed: "#dfff4f", neutralTintHue: undefined,
-    darkModeDefault: false, radius: "sharp", typeRatio: 1.414,
-    fonts: { heading: "Archivo Black", body: "Archivo", mono: "JetBrains Mono" },
-  },
-  {
-    id: "soft-pastel", label: "Soft Pastel", description: "Lavender air. Gentle, friendly, rounded.",
-    primarySeed: "#a78bfa", accentSeed: "#5eead4", neutralTintHue: 300,
-    darkModeDefault: false, radius: "round", typeRatio: 1.2,
-    fonts: { heading: "Quicksand", body: "Nunito Sans", mono: "Fira Code" },
-  },
-  {
-    id: "corporate-clean", label: "Corporate Clean", description: "Trustworthy blue. Ship-to-production safe.",
-    primarySeed: "#2563eb", accentSeed: "#0ea5e9", neutralTintHue: 230,
-    darkModeDefault: false, radius: "soft", typeRatio: 1.25,
-    fonts: { heading: "Inter", body: "Inter", mono: "IBM Plex Mono" },
-  },
-  {
-    id: "earthy", label: "Earthy / Organic", description: "Terracotta, sage, cream. Farmers-market warmth.",
-    primarySeed: "#c2703d", accentSeed: "#7d9b76", neutralTintHue: 60,
-    darkModeDefault: false, radius: "soft", typeRatio: 1.25,
-    fonts: { heading: "Fraunces", body: "Source Sans 3", mono: "Courier Prime" },
-  },
-  {
-    id: "luxury", label: "Luxury", description: "Charcoal & gold serif. Slow fashion energy.",
-    primarySeed: "#d4af37", accentSeed: "#8b6f47", neutralTintHue: 45,
-    darkModeDefault: true, radius: "sharp", typeRatio: 1.618,
-    fonts: { heading: "Playfair Display", body: "Lato", mono: "Cormorant Garamond" },
-  },
-  {
-    id: "playful", label: "Playful", description: "Bubblegum brights, pill buttons, big grins.",
-    primarySeed: "#fb7185", accentSeed: "#38bdf8", neutralTintHue: 350,
-    darkModeDefault: false, radius: "pill", typeRatio: 1.333,
-    fonts: { heading: "Baloo 2", body: "Fredoka", mono: "Nunito" },
-  },
-  {
-    id: "retro", label: "Retro 70s", description: "Mustard, burnt orange, avocado wood-panel vibes.",
+    id: "retro", label: "Retro", description: "70s warmth, 80s neon. Analog soul.",
     primarySeed: "#e07a3f", accentSeed: "#946b2d", neutralTintHue: 70,
     darkModeDefault: false, radius: "soft", typeRatio: 1.333,
     fonts: { heading: "DM Serif Display", body: "Karla", mono: "Space Mono" },
   },
   {
-    id: "mono-minimal", label: "Mono Minimal", description: "Grayscale + one precise blue. Swiss discipline.",
-    primarySeed: "#18181b", accentSeed: "#3b82f6", neutralTintHue: undefined,
+    id: "tech", label: "Tech", description: "Electric, precise, built at night.",
+    primarySeed: "#22d3ee", accentSeed: "#8b5cf6", neutralTintHue: 200,
+    darkModeDefault: true, radius: "sharp", typeRatio: 1.25,
+    fonts: { heading: "Space Grotesk", body: "Inter", mono: "JetBrains Mono" },
+  },
+  {
+    id: "corporate", label: "Corporate", description: "Trustworthy, crisp, ship-safe.",
+    primarySeed: "#2563eb", accentSeed: "#0ea5e9", neutralTintHue: 230,
     darkModeDefault: false, radius: "soft", typeRatio: 1.25,
+    fonts: { heading: "Inter", body: "Inter", mono: "IBM Plex Mono" },
+  },
+  {
+    id: "minimal", label: "Minimal", description: "Restraint as a design decision.",
+    primarySeed: "#18181b", accentSeed: "#a1a1aa", neutralTintHue: undefined,
+    darkModeDefault: false, radius: "soft", typeRatio: 1.125,
     fonts: { heading: "Inter", body: "Inter", mono: "JetBrains Mono" },
   },
   {
-    id: "ocean-calm", label: "Ocean Calm", description: "Teal mist. Breathes easy, focus-friendly.",
-    primarySeed: "#0ea5a6", accentSeed: "#6366f1", neutralTintHue: 190,
-    darkModeDefault: false, radius: "round", typeRatio: 1.25,
-    fonts: { heading: "Outfit", body: "Public Sans", mono: "Martian Mono" },
+    id: "soft-pastel", label: "Soft Pastel", description: "Gentle, friendly, rounded.",
+    primarySeed: "#b8a7f5", accentSeed: "#7dd3fc", neutralTintHue: 300,
+    darkModeDefault: false, radius: "round", typeRatio: 1.2,
+    fonts: { heading: "Quicksand", body: "Nunito Sans", mono: "Fira Code" },
+  },
+  {
+    id: "luxury", label: "Luxury", description: "Charcoal, gold serif, slow confidence.",
+    primarySeed: "#d4af37", accentSeed: "#8b6f47", neutralTintHue: 45,
+    darkModeDefault: true, radius: "sharp", typeRatio: 1.618,
+    fonts: { heading: "Playfair Display", body: "Lato", mono: "Cormorant Garamond" },
+  },
+  {
+    id: "earthy", label: "Earthy / Organic", description: "Terracotta, sage, cream.",
+    primarySeed: "#c2703d", accentSeed: "#7d9b76", neutralTintHue: 60,
+    darkModeDefault: false, radius: "soft", typeRatio: 1.25,
+    fonts: { heading: "Fraunces", body: "Source Sans 3", mono: "Courier Prime" },
   },
 ];
 

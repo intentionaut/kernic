@@ -10,7 +10,7 @@ Pick a vibe, tune a palette in your terminal, choose Google Fonts, then export t
 
 The CLI is and always will be free and open source (MIT). It generates complete design systems locally on your machine:
 
-- **10 curated vibes** — Cyberpunk, Brutalist, Soft Pastel, Corporate Clean, Earthy, Luxury, Playful, Retro 70s, Mono Minimal, Ocean Calm
+- **7 theme families, 24 curated looks** — Retro (70s & 80s), Tech, Corporate, Minimal, Soft Pastel, Luxury, Earthy/Organic. Pick a theme in Studio, click a look, done
 - **Terminal palette picker** — live ANSI swatches, hue shifting, harmony rules (analogous / complementary / triadic / monochrome), tinted neutrals
 - **Real color science** — ramps generated in [OKLCH](https://oklch.com/) with automatic sRGB gamut fitting
 - **All ~2k Google Fonts** — live search with bundled offline fallback
@@ -57,7 +57,7 @@ The wizard walks through naming, vibe, palette tuning with live previews, headin
 kernic create launch-page --vibe corporate-clean --yes
 ```
 
-Vibes: `cyberpunk` · `brutalist` · `soft-pastel` · `corporate-clean` · `earthy` · `luxury` · `playful` · `retro` · `mono-minimal` · `ocean-calm`
+Vibes: `retro` (70s + 80s) · `tech` · `corporate` · `minimal` · `soft-pastel` · `luxury` · `earthy`
 
 ## Commands
 

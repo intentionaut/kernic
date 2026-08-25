@@ -17,9 +17,20 @@ const state = {
   looks: [],
   activeLookId: null,
   ramps: null,
-  semantic: null,
-  semanticDark: null,
+  /** Raw nested {light,dark} semantics — exactly what gets saved to JSON. */
+  semanticRaw: null,
 };
+
+/** Flatten nested {light,dark} semantic maps for the active preview mode. */
+function pickMode(sem, mode) {
+  const out = {};
+  if (!sem) return out;
+  for (const k of ["background", "surface", "text", "mutedText", "border", "ring"]) {
+    const v = sem[k];
+    out[k] = typeof v === "string" ? v : v?.[mode];
+  }
+  return out;
+}
 
 function tintHue() {
   if (state.tint === "match") return state.hue;
@@ -67,8 +78,7 @@ async function refreshPalette() {
     body: JSON.stringify(payload),
   });
   state.ramps = result.colors;
-  state.semantic = result.semantic;
-  state.semanticDark = result.semanticDark;
+  state.semanticRaw = result.semantic;
   renderRamps();
   renderPreview();
 }
@@ -122,7 +132,7 @@ function scaleVars() {
 function renderPreview() {
   const pv = $("preview");
   pv.dataset.vibe = state.vibeId ?? "custom";
-  const sem = state.mode === "dark" ? state.semanticDark : state.semantic;
+  const sem = pickMode(state.semanticRaw, state.mode);
   const r = state.meta.radii[state.radiusStyle];
   const set = (k, v) => pv.style.setProperty(k, v);
 
@@ -135,7 +145,7 @@ function renderPreview() {
   set("--pv-text", sem.text);
   set("--pv-muted-text", sem.mutedText);
   set("--pv-border", sem.border);
-  set("--semantic-ring", state.semantic.ring);
+  set("--semantic-ring", sem.ring);
   set("--font-heading", `"${state.fonts.heading}", ui-serif, Georgia, serif`);
   set("--font-body", `"${state.fonts.body}", ui-sans-serif, system-ui, sans-serif`);
   set("--font-mono", `"${state.fonts.mono}", ui-monospace, monospace`);
@@ -180,12 +190,22 @@ function applyLook(look) {
   syncControls();
   refreshPalette();
   markActiveLook();
+  renderVibes();
+  renderLooks();
 }
 
 function renderLooks() {
   const host = $("looksGrid");
   host.innerHTML = "";
-  for (const look of state.looks) {
+  const themed = state.looks.filter((l) => l.vibeId === state.vibeId);
+  const vibe = state.meta?.vibes.find((v) => v.id === state.vibeId);
+  $("looksLabel").textContent = vibe ? `${vibe.label} looks` : "Looks";
+  if (themed.length === 0) {
+    $("looksSection").style.display = "none";
+    return;
+  }
+  $("looksSection").style.display = "";
+  for (const look of themed) {
     const card = document.createElement("div");
     card.className = "look-card" + (state.activeLookId === look.id ? " on" : "");
     card.dataset.look = look.id;
@@ -227,14 +247,23 @@ function renderVibes() {
   for (const v of state.meta.vibes) {
     const chip = document.createElement("button");
     chip.className = "chip" + (state.vibeId === v.id ? " on" : "");
-    chip.textContent = v.label;
+    const dot = document.createElement("span");
+    dot.className = "chip-dot";
+    dot.style.background = v.primarySeed;
+    chip.append(dot, document.createTextNode(v.label));
+    chip.title = v.description;
     chip.onclick = () => applyVibe(v);
     host.appendChild(chip);
   }
 }
 
-/** Vibe chips live inside Fine-tune — they reset any picked look. */
+/** Picking a theme auto-applies its recommended look — opinionated by design. */
 function applyVibe(v) {
+  const recommended = state.looks.find((l) => l.vibeId === v.id);
+  if (recommended) {
+    applyLook(recommended);
+    return;
+  }
   state.vibeId = v.id;
   state.activeLookId = null;
   markActiveLook();
@@ -296,7 +325,7 @@ function buildSystemPayload() {
     name: state.name,
     vibe: state.vibeId ?? "custom",
     colors: state.ramps,
-    semantic: state.semantic,
+    semantic: state.semanticRaw,
     fonts: state.fonts,
     radius: { style: state.radiusStyle, ...state.meta.radii[state.radiusStyle] },
     typeScale: { ratio: Number(state.ratio), baseRem: 1 },
@@ -379,12 +408,7 @@ async function init() {
       const t = seeds.neutralTintHue;
       state.tint = t === undefined || t === null ? "pure" : t === 60 ? "warm" : t === 230 ? "cool" : "match";
       state.ramps = system.colors;
-      state.semantic = system.semantic;
-      state.semanticDark = {
-        background: system.semantic.background.dark, surface: system.semantic.surface.dark,
-        text: system.semantic.text.dark, mutedText: system.semantic.mutedText.dark,
-        border: system.semantic.border.dark, ring: system.semantic.ring,
-      };
+      state.semanticRaw = system.semantic;
       renderRamps();
       renderPreview();
       syncControls();
@@ -457,6 +481,7 @@ $("shuffle").onclick = async () => {
   state.ratio = v.typeRatio;
   syncControls();
   refreshPalette();
+  renderLooks();
 };
 document.querySelectorAll("#tintRow button").forEach((b) => {
   b.onclick = () => { state.tint = b.dataset.tint; syncControls(); refreshPalette(); };

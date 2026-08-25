@@ -104,6 +104,7 @@ input[type="range"] { width: 100%; accent-color: var(--ui-accent); }
   font-size: 11.5px;
 }
 .chip.on { border-color: var(--ui-accent); color: var(--ui-text); background: color-mix(in srgb, var(--ui-accent) 18%, transparent); }
+.chip-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(255,255,255,.18) inset; }
 
 .seg { display: flex; border: 1px solid var(--ui-border); border-radius: 8px; overflow: hidden; }
 .seg button {
@@ -297,31 +298,20 @@ input[type="range"] { width: 100%; accent-color: var(--ui-accent); }
 }
 #toast.show { transform: translateX(-50%) translateY(0); }
 
-/* ---------- vibe DNA: per-vibe personality treatments ---------- */
+/* ---------- theme DNA: per-theme personality treatments ---------- */
 
-/* Cyberpunk — neon voltage */
-#preview[data-vibe="cyberpunk"] .pv-nav { border-bottom-color: var(--color-primary-500); }
-#preview[data-vibe="cyberpunk"] .pv-primary {
+/* Tech — neon voltage */
+#preview[data-vibe="tech"] .pv-nav { border-bottom-color: var(--color-primary-500); }
+#preview[data-vibe="tech"] .pv-primary {
   box-shadow: 0 0 24px color-mix(in srgb, var(--color-primary-500) 60%, transparent);
 }
-#preview[data-vibe="cyberpunk"] .pv-chip { color: var(--color-accent-400); border-color: var(--color-accent-500); }
-#preview[data-vibe="cyberpunk"] .pv-brand { letter-spacing: 0.06em; text-transform: uppercase; }
-#preview[data-vibe="cyberpunk"] .pv-links a:hover { color: var(--color-accent-300); }
-#preview[data-vibe="cyberpunk"] .spec-code { color: var(--color-accent-400); }
+#preview[data-vibe="tech"] .pv-chip { color: var(--color-accent-400); border-color: var(--color-accent-500); }
+#preview[data-vibe="tech"] .spec-code { color: var(--color-accent-400); }
 
-/* Brutalist — raw structure, hard shadows, shouty type */
-#preview[data-vibe="brutalist"] .pv-h1,
-#preview[data-vibe="brutalist"] .pv-h2 { text-transform: uppercase; letter-spacing: -0.01em; }
-#preview[data-vibe="brutalist"] .pv-card {
-  border: 2px solid var(--pv-text);
-  box-shadow: 5px 5px 0 var(--pv-text);
-}
-#preview[data-vibe="brutalist"] .pv-btn {
-  box-shadow: 3px 3px 0 var(--pv-text);
-  border-radius: 0;
-}
-#preview[data-vibe="brutalist"] .pv-primary { background: var(--color-accent-400); color: #000; }
-#preview[data-vibe="brutalist"] .pv-chip { border: 1.5px solid var(--pv-text); color: var(--pv-text); }
+/* Retro — offset print + sun-faded */
+#preview[data-vibe="retro"] .pv-card { box-shadow: -6px 6px 0 color-mix(in srgb, var(--color-accent-400) 70%, transparent); }
+#preview[data-vibe="retro"] .t1, #preview[data-vibe="retro"] .t2, #preview[data-vibe="retro"] .t3 { filter: saturate(.85) sepia(.12); }
+#preview[data-vibe="retro"] .pv-chip { transform: rotate(-3deg); }
 
 /* Soft Pastel — floating softness */
 #preview[data-vibe="soft-pastel"] .pv-card {
@@ -331,19 +321,15 @@ input[type="range"] { width: 100%; accent-color: var(--ui-accent); }
 #preview[data-vibe="soft-pastel"] .pv-hero { padding-block: 64px; }
 #preview[data-vibe="soft-pastel"] .pv-btn { padding-inline: 26px; }
 
-/* Corporate Clean — crisp and confident */
-#preview[data-vibe="corporate-clean"] .pv-card {
+/* Corporate — crisp and confident */
+#preview[data-vibe="corporate"] .pv-card {
   box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 8px 22px -14px rgba(0,0,0,.18);
 }
 
-/* Earthy — warm paper and weight */
-#preview[data-vibe="earthy"] .pv-surface,
-#preview[data-vibe="earthy"] .pv-cards,
-#preview[data-vibe="earthy"] .pv-specimen { background: color-mix(in srgb, var(--color-neutral-100) 55%, var(--pv-surface)); }
-#preview[data-vibe="earthy"] .pv-card {
-  box-shadow: 0 10px 26px -16px color-mix(in srgb, var(--color-primary-700) 55%, transparent);
-}
-#preview[data-vibe="earthy"] .pv-h1 { font-weight: 500; }
+/* Minimal — flat hairlines, zero ornament */
+#preview[data-vibe="minimal"] .pv-card { box-shadow: none; border-width: 1px; }
+#preview[data-vibe="minimal"] .pv-btn.pv-primary { box-shadow: none; }
+#preview[data-vibe="minimal"] .pv-chip { display: none; }
 
 /* Luxury — slow, tracked, gilded */
 #preview[data-vibe="luxury"] .pv-h1 { font-weight: 500; letter-spacing: 0.03em; }
@@ -356,27 +342,10 @@ input[type="range"] { width: 100%; accent-color: var(--ui-accent); }
 }
 #preview[data-vibe="luxury"] .pv-sub { max-width: 420px; margin-bottom: 34px; }
 
-/* Playful — bouncy and round */
-#preview[data-vibe="playful"] .pv-thumb { border-radius: 999px 999px var(--radius-md) var(--radius-md); }
-#preview[data-vibe="playful"] .pv-btn { transition: transform .15s cubic-bezier(.34,1.56,.64,1); }
-#preview[data-vibe="playful"] .pv-btn:hover { transform: translateY(-3px) rotate(-1.5deg); }
-#preview[data-vibe="playful"] .pv-primary { box-shadow: 0 8px 20px -8px var(--color-primary-500); }
-#preview[data-vibe="playful"] .pv-chip { transform: rotate(-4deg); font-weight: 700; }
-
-/* Retro — sun-faded offset prints */
-#preview[data-vibe="retro"] .pv-card { box-shadow: -6px 6px 0 color-mix(in srgb, var(--color-accent-400) 70%, transparent); }
-#preview[data-vibe="retro"] .pv-h1 { letter-spacing: 0.01em; }
-#preview[data-vibe="retro"] .t1 { filter: saturate(.85) sepia(.12); }
-#preview[data-vibe="retro"] .t2 { filter: saturate(.85) sepia(.12); }
-#preview[data-vibe="retro"] .t3 { filter: saturate(.85) sepia(.12); }
-
-/* Ocean Calm — airy depth */
-#preview[data-vibe="ocean-calm"] .pv-hero { padding-block: 72px; }
-#preview[data-vibe="ocean-calm"] .pv-card {
-  box-shadow: 0 18px 44px -24px color-mix(in srgb, var(--color-primary-600) 45%, transparent);
+/* Earthy — warm paper and weight */
+#preview[data-vibe="earthy"] .pv-cards,
+#preview[data-vibe="earthy"] .pv-specimen { background: color-mix(in srgb, var(--color-neutral-100) 55%, var(--pv-surface)); }
+#preview[data-vibe="earthy"] .pv-card {
+  box-shadow: 0 10px 26px -16px color-mix(in srgb, var(--color-primary-700) 55%, transparent);
 }
-
-/* Mono Minimal — flat hairlines, zero ornament */
-#preview[data-vibe="mono-minimal"] .pv-card { box-shadow: none; }
-#preview[data-vibe="mono-minimal"] .pv-btn.pv-primary { box-shadow: none; }
-#preview[data-vibe="mono-minimal"] .pv-chip { display: none; }
+#preview[data-vibe="earthy"] .pv-h1 { font-weight: 500; }
