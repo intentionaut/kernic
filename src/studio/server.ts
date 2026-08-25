@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join, normalize } from "node:path";
 import {
+  buildGradients,
   buildNeutral,
   buildRamp,
   harmonize,
@@ -72,6 +73,7 @@ function buildPalette(req: PaletteRequest) {
     colors,
     semantic: semanticFromRamps(colors, false),
     semanticDark: semanticFromRamps(colors, true),
+    gradients: buildGradients(colors),
   };
 }
 
@@ -104,7 +106,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL): P
         accent: buildRamp(l.accentSeed),
         neutral: buildNeutral(l.neutralTintHue ?? undefined),
       };
-      return { ...l, colors, semantic: semanticFromRamps(colors, l.darkDefault) };
+      return { ...l, colors, semantic: semanticFromRamps(colors, l.darkDefault), gradients: buildGradients(colors) };
     });
     return json(res, 200, { looks }), true;
   }
@@ -151,6 +153,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL): P
       fonts: body.fonts,
       radius: body.radius,
       typeScale: body.typeScale,
+      gradients: typeof body.gradients === "object" && body.gradients !== null ? body.gradients : undefined,
       extensions: body.extensions,
     };
     await saveSystem(ds);

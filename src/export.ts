@@ -32,6 +32,13 @@ function colorVars(ds: DesignSystem): string[] {
     const hex = typeof value === "string" ? value : value.dark;
     lines.push(`  --dark-${css}: ${hex};`);
   }
+  if (ds.gradients && Object.keys(ds.gradients).length > 0) {
+    lines.push("");
+    lines.push("  /* Gradients */");
+    for (const [name, value] of Object.entries(ds.gradients)) {
+      lines.push(`  --gradient-${name}: ${value};`);
+    }
+  }
   return lines;
 }
 
@@ -112,6 +119,11 @@ export function exportTailwind(ds: DesignSystem): string {
     `  --color-muted: ${ds.semantic.mutedText.light};`,
     `  --color-border-default: ${ds.semantic.border.light};`
   );
+  if (ds.gradients) {
+    for (const [name, value] of Object.entries(ds.gradients)) {
+      twColors.push(`  --background-image-${name}: ${value};`);
+    }
+  }
   return [
     `/* kernic — "${ds.name}" Tailwind v4 theme (vibe: ${ds.vibe}) */`,
     `@import "tailwindcss";`,

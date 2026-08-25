@@ -40,10 +40,22 @@ export const LOOKS: Look[] = [
   // ── Corporate ──────────────────────────────────────
   { id: "boardroom", label: "Boardroom", vibeId: "corporate", primarySeed: "#2563eb", accentSeed: "#0ea5e9", neutralTintHue: 230, darkDefault: false,
     fonts: { heading: "Inter", body: "Inter", mono: "IBM Plex Mono" }, radius: "soft", ratio: 1.25 },
+  { id: "midnight-ledger", label: "Midnight Ledger", vibeId: "corporate", primarySeed: "#1d4ed8", accentSeed: "#64748b", neutralTintHue: 225, darkDefault: true,
+    fonts: { heading: "Inter", body: "Source Sans 3", mono: "IBM Plex Mono" }, radius: "soft", ratio: 1.25 },
   { id: "slate-serial", label: "Slate Serial", vibeId: "corporate", primarySeed: "#0f172a", accentSeed: "#38bdf8", neutralTintHue: 220, darkDefault: false,
     fonts: { heading: "Manrope", body: "Source Sans 3", mono: "JetBrains Mono" }, radius: "soft", ratio: 1.25 },
   { id: "fresh-saas", label: "Fresh SaaS", vibeId: "corporate", primarySeed: "#059669", accentSeed: "#0ea5e9", neutralTintHue: 160, darkDefault: false,
     fonts: { heading: "Plus Jakarta Sans", body: "Inter", mono: "IBM Plex Mono" }, radius: "soft", ratio: 1.25 },
+
+  // ── Neon (gradient fintech / Stripe energy) ────────
+  { id: "stripe-canvas", label: "Stripe Canvas", vibeId: "neon", primarySeed: "#635bff", accentSeed: "#00d4ff", neutralTintHue: 250, darkDefault: true,
+    fonts: { heading: "Inter", body: "Inter", mono: "JetBrains Mono" }, radius: "soft", ratio: 1.25 },
+  { id: "checkout-light", label: "Checkout Light", vibeId: "neon", primarySeed: "#635bff", accentSeed: "#00d4ff", neutralTintHue: 250, darkDefault: false,
+    fonts: { heading: "Inter", body: "Inter", mono: "JetBrains Mono" }, radius: "soft", ratio: 1.25 },
+  { id: "glow-pop", label: "Glow Pop", vibeId: "neon", primarySeed: "#ec4899", accentSeed: "#00d4ff", neutralTintHue: 320, darkDefault: true,
+    fonts: { heading: "Plus Jakarta Sans", body: "Inter", mono: "Fira Code" }, radius: "round", ratio: 1.25 },
+  { id: "aurora-pay", label: "Aurora Pay", vibeId: "neon", primarySeed: "#8b5cf6", accentSeed: "#22d3ee", neutralTintHue: 265, darkDefault: true,
+    fonts: { heading: "Manrope", body: "Inter", mono: "JetBrains Mono" }, radius: "soft", ratio: 1.25 },
 
   // ── Minimal ────────────────────────────────────────
   { id: "paper-ink", label: "Paper & Ink", vibeId: "minimal", primarySeed: "#18181b", accentSeed: "#3b82f6", neutralTintHue: null, darkDefault: false,

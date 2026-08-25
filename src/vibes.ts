@@ -35,6 +35,12 @@ export const VIBES: Vibe[] = [
     fonts: { heading: "Inter", body: "Inter", mono: "IBM Plex Mono" },
   },
   {
+    id: "neon", label: "Neon", description: "Gradient-fueled fintech polish. Stripe energy.",
+    primarySeed: "#635bff", accentSeed: "#00d4ff", neutralTintHue: 250,
+    darkModeDefault: true, radius: "soft", typeRatio: 1.25,
+    fonts: { heading: "Inter", body: "Inter", mono: "JetBrains Mono" },
+  },
+  {
     id: "minimal", label: "Minimal", description: "Restraint as a design decision.",
     primarySeed: "#18181b", accentSeed: "#a1a1aa", neutralTintHue: undefined,
     darkModeDefault: false, radius: "soft", typeRatio: 1.125,

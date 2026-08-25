@@ -17,6 +17,7 @@ const state = {
   looks: [],
   activeLookId: null,
   ramps: null,
+  gradients: null,
   /** Raw nested {light,dark} semantics — exactly what gets saved to JSON. */
   semanticRaw: null,
 };
@@ -79,6 +80,7 @@ async function refreshPalette() {
   });
   state.ramps = result.colors;
   state.semanticRaw = result.semantic;
+  state.gradients = result.gradients;
   renderRamps();
   renderPreview();
 }
@@ -140,6 +142,11 @@ function renderPreview() {
     for (const [stop, hex] of Object.entries(ramp))
       set(`--color-${rampName}-${stop}`, hex);
 
+  const grads = state.gradients ?? {};
+  set("--gradient-primary", grads.primary ?? "none");
+  set("--gradient-mesh", grads.mesh ?? "none");
+  set("--gradient-text", grads.text ?? "none");
+
   set("--pv-background", sem.background);
   set("--pv-surface", sem.surface);
   set("--pv-text", sem.text);
@@ -189,6 +196,7 @@ function snapshotState(label, id) {
     mode: state.mode,
     ramps: state.ramps,
     semanticRaw: state.semanticRaw,
+    gradients: state.gradients,
   };
 }
 
@@ -383,6 +391,7 @@ function buildSystemPayload() {
     vibe: state.vibeId ?? "custom",
     colors: state.ramps,
     semantic: state.semanticRaw,
+    gradients: state.gradients ?? undefined,
     fonts: state.fonts,
     radius: { style: state.radiusStyle, ...state.meta.radii[state.radiusStyle] },
     typeScale: { ratio: Number(state.ratio), baseRem: 1 },
@@ -466,6 +475,7 @@ async function init() {
       state.tint = t === undefined || t === null ? "pure" : t === 60 ? "warm" : t === 230 ? "cool" : "match";
       state.ramps = system.colors;
       state.semanticRaw = system.semantic;
+      state.gradients = system.gradients ?? null;
       renderRamps();
       renderPreview();
       syncControls();

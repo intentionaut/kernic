@@ -149,3 +149,22 @@ export function randomSeed(): string {
   const l = 0.5 + Math.random() * 0.15;
   return oklchToHex({ l, c, h });
 }
+
+/**
+ * Opinionated gradient tokens derived from a system's own ramps, so they stay
+ * coherent when hues shift. A third accent hue is synthesized ~85° away.
+ */
+export function buildGradients(colors: { primary: Ramp; accent: Ramp; neutral: Ramp }): Record<string, string> {
+  const p = hexToOklch(colors.primary["600"]);
+  const third = oklchToHex({ l: 0.66, c: Math.min(0.21, Math.max(0.14, p.c)), h: p.h + 85 });
+  return {
+    primary: `linear-gradient(120deg, ${colors.accent["400"]} 0%, ${colors.primary["500"]} 52%, ${colors.primary["800"]} 100%)`,
+    mesh: [
+      `radial-gradient(60% 85% at 12% 8%, ${colors.accent["300"]}55 0%, transparent 60%)`,
+      `radial-gradient(55% 75% at 88% 10%, ${third}63 0%, transparent 58%)`,
+      `radial-gradient(80% 95% at 55% 96%, ${colors.primary["500"]}40 0%, transparent 62%)`,
+      `linear-gradient(180deg, ${colors.neutral["900"]}, ${colors.neutral["950"]})`,
+    ].join(", "),
+    text: `linear-gradient(92deg, ${colors.accent["500"]} 0%, ${colors.primary["400"]} 55%, ${third} 100%)`,
+  };
+}

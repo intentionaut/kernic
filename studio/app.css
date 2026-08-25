@@ -312,6 +312,45 @@ input[type="range"] { width: 100%; accent-color: var(--ui-accent); }
 
 /* ---------- theme DNA: per-theme personality treatments ---------- */
 
+/* Neon — gradient fintech, Stripe-canvas energy */
+#preview[data-vibe="neon"] .pv-hero { position: relative; overflow: hidden; }
+#preview[data-vibe="neon"] .pv-hero::before {
+  content: ""; position: absolute; inset: -1px;
+  background-image: var(--gradient-mesh);
+  pointer-events: none;
+}
+#preview[data-vibe="neon"] .pv-hero > * { position: relative; }
+#preview[data-vibe="neon"] .pv-primary {
+  background-image: var(--gradient-primary);
+  box-shadow: 0 10px 30px -12px color-mix(in srgb, var(--color-primary-500) 75%, transparent);
+}
+#preview[data-vibe="neon"] .pv-grad-word {
+  background-image: var(--gradient-text);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+#preview[data-vibe="neon"] .pv-nav {
+  border-bottom-color: color-mix(in srgb, var(--color-accent-400) 30%, var(--pv-border));
+}
+#preview[data-vibe="neon"] .pv-card { backdrop-filter: blur(6px); }
+
+/* Corporate — opinionated: tight type, uppercase nav, lift-on-hover, solid depth */
+#preview[data-vibe="corporate"] .pv-h1 { letter-spacing: -0.03em; font-weight: 800; }
+#preview[data-vibe="corporate"] .pv-brand { letter-spacing: -0.02em; font-weight: 800; }
+#preview[data-vibe="corporate"] .pv-links a {
+  text-transform: uppercase; font-size: 11px; letter-spacing: 0.09em; font-weight: 600;
+}
+#preview[data-vibe="corporate"] .pv-card {
+  transition: transform .18s ease, box-shadow .18s ease;
+  box-shadow: 0 1px 3px rgba(15,23,42,.08), 0 8px 22px -14px rgba(15,23,42,.2);
+}
+#preview[data-vibe="corporate"] .pv-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 38px -18px rgba(15,23,42,.32);
+}
+#preview[data-vibe="corporate"] .pv-btn.pv-primary {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 4px 12px -6px var(--color-primary-700);
+}
+
 /* Tech — neon voltage */
 #preview[data-vibe="tech"] .pv-nav { border-bottom-color: var(--color-primary-500); }
 #preview[data-vibe="tech"] .pv-primary {

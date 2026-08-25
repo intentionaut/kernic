@@ -10,7 +10,8 @@ Pick a vibe, tune a palette in your terminal, choose Google Fonts, then export t
 
 The CLI is and always will be free and open source (MIT). It generates complete design systems locally on your machine:
 
-- **7 theme families, 24 curated looks** — Retro (70s & 80s), Tech, Corporate, Minimal, Soft Pastel, Luxury, Earthy/Organic. Pick a theme in Studio, click a look, done
+- **8 theme families, 27 curated looks** — Retro (70s & 80s), Tech, Corporate, Minimal, Neon (Stripe-style gradient fintech), Soft Pastel, Luxury, Earthy/Organic. Pick a theme in Studio, click a look, done
+- **Gradient tokens built in** — Neon looks ship with preconfigured `--gradient-*` tokens (mesh backdrops, gradient CTAs and headline text), exported to CSS vars and Tailwind v4 `bg-*` utilities
 - **Terminal palette picker** — live ANSI swatches, hue shifting, harmony rules (analogous / complementary / triadic / monochrome), tinted neutrals
 - **Real color science** — ramps generated in [OKLCH](https://oklch.com/) with automatic sRGB gamut fitting
 - **All ~2k Google Fonts** — live search with bundled offline fallback

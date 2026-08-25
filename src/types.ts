@@ -42,6 +42,8 @@ export interface DesignSystem {
     xl: string;
   };
   typeScale: { ratio: number; baseRem: number };
+  /** Preconfigured gradient tokens (CSS background values). Optional; additive to schema v1. */
+  gradients?: Record<string, string>;
   /** Reserved for premium extensions (motion, shadows, depth, rhythm). Free CLI preserves unknown keys on read/write. */
   extensions?: Record<string, unknown>;
 }
