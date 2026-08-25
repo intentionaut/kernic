@@ -1,0 +1,49 @@
+{
+  "name": "umbrik",
+  "version": "0.1.0",
+  "description": "Wrap any project in a polished design system — palette picker, Google Fonts, vibes, forged in the terminal. Export CSS vars, Tailwind v4 theme, JSON tokens.",
+  "type": "module",
+  "bin": {
+    "umbrik": "./dist/index.js",
+    "um": "./dist/index.js"
+  },
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/intentionaut/umbrik.git"
+  },
+  "homepage": "https://github.com/intentionaut/umbrik#readme",
+  "bugs": "https://github.com/intentionaut/umbrik/issues",
+  "author": "intentionaut",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "prepack": "npm run build",
+    "test": "npm run build && node dist/index.js list"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "umbrik",
+    "design-system",
+    "design-tokens",
+    "cli",
+    "tailwind",
+    "tailwindcss",
+    "css",
+    "google-fonts",
+    "palette",
+    "vibe-coding"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "commander": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
