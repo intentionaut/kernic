@@ -17,6 +17,7 @@ import { getFontCatalog, searchFonts } from "../fonts.ts";
 import { loadSystem, normalizeName, saveSystem } from "../storage.ts";
 import type { DesignSystem, Ramp } from "../types.ts";
 import { RADIUS_PRESETS, VIBES, type Vibe } from "../vibes.ts";
+import { LOOKS } from "./looks.ts";
 
 const STUDIO_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "studio");
 
@@ -41,16 +42,25 @@ async function readBody(req: IncomingMessage): Promise<any> {
 }
 
 interface PaletteRequest {
-  primaryHue?: number;
+  /** Exact primary seed (vibe click / load path). */
   primarySeed?: string;
+  /** Seed supplying lightness/chroma character while the hue slider rotates it. */
+  baseSeed?: string;
+  /** Absolute target hue (0–360) applied over baseSeed. */
+  targetHue?: number;
+  /** Exact accent seed (vibe click / load path). */
+  accentSeed?: string;
   harmony?: Harmony;
   neutralTintHue?: number | null;
-  accentSeed?: string;
 }
 
 function buildPalette(req: PaletteRequest) {
+  const base = req.baseSeed ? hexToOklch(req.baseSeed) : null;
   const primarySeed =
-    req.primarySeed ?? oklchToHex({ l: 0.6, c: 0.17, h: ((req.primaryHue ?? 220) % 360 + 360) % 360 });
+    req.primarySeed ??
+    (base
+      ? oklchToHex({ l: base.l, c: base.c, h: (((req.targetHue ?? base.h) % 360) + 360) % 360 })
+      : oklchToHex({ l: 0.6, c: 0.17, h: ((req.targetHue ?? 220) % 360) + 360 % 360 }));
   const accentSeed = req.accentSeed ?? harmonize(primarySeed, req.harmony ?? "analogous");
   const colors = {
     primary: buildRamp(primarySeed),
@@ -86,6 +96,18 @@ function vibePublic(v: Vibe) {
 
 async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
   const path = url.pathname;
+
+  if (req.method === "GET" && path === "/api/looks") {
+    const looks = LOOKS.map((l) => {
+      const colors = {
+        primary: buildRamp(l.primarySeed),
+        accent: buildRamp(l.accentSeed),
+        neutral: buildNeutral(l.neutralTintHue ?? undefined),
+      };
+      return { ...l, colors, semantic: semanticFromRamps(colors, l.darkDefault) };
+    });
+    return json(res, 200, { looks }), true;
+  }
 
   if (req.method === "GET" && path === "/api/meta") {
     return json(res, 200, {
@@ -150,7 +172,7 @@ async function serveStatic(res: ServerResponse, url: URL): Promise<void> {
     const st = await stat(file);
     if (!st.isFile()) throw new Error();
     const ext = rel.slice(rel.lastIndexOf("."));
-    res.writeHead(200, { "Content-Type": MIME[ext] ?? "application/octet-stream" });
+    res.writeHead(200, { "Content-Type": MIME[ext] ?? "application/octet-stream", "Cache-Control": "no-store" });
     res.end(await readFile(file));
   } catch {
     res.writeHead(404, { "Content-Type": "text/plain" });

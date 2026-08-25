@@ -20,9 +20,18 @@
     </section>
 
     <section class="group">
-      <div class="group-label">Vibe</div>
-      <div id="vibes" class="chip-row"></div>
+      <div class="group-label">Pick a look <span class="hint">one click, done</span></div>
+      <div id="looksGrid"></div>
+      <button id="shuffle" class="btn ghost small">✦ Surprise me</button>
     </section>
+
+    <details id="fineTune">
+      <summary>Fine-tune <span class="hint">for pros</span></summary>
+
+      <section class="group">
+        <div class="group-label">Vibe family</div>
+        <div id="vibes" class="chip-row"></div>
+      </section>
 
     <section class="group">
       <div class="group-label">Primary hue <span id="hueVal" class="hint"></span></div>
@@ -70,6 +79,8 @@
       <select id="ratio"></select>
     </section>
 
+    </details>
+
     <footer class="side-foot">
       <button id="save" class="btn primary wide">Save system</button>
       <div id="status" class="status"></div>
@@ -79,9 +90,9 @@
   <main id="main">
     <div id="previewBar">
       <span class="bar-title">Live preview</span>
-      <div class="seg mini" id="modeRow">
-        <button data-mode="light" class="on">Light</button>
-        <button data-mode="dark">Dark</button>
+      <div class="mode-toggle" id="modeRow">
+        <button data-mode="light" class="on">☀ Light</button>
+        <button data-mode="dark">☾ Dark</button>
       </div>
     </div>
     <div id="ramps"></div>

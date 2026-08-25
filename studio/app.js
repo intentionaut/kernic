@@ -2,6 +2,9 @@ const $ = (id) => document.getElementById(id);
 const state = {
   name: "",
   vibeId: null,
+  baseSeed: "#2563eb",
+  accentSeed: null,
+  accentExact: true,
   hue: 220,
   harmony: "analogous",
   tint: "match", // match | warm | cool | pure
@@ -11,17 +14,18 @@ const state = {
   darkDefault: false,
   mode: "light",
   meta: null,
+  looks: [],
+  activeLookId: null,
   ramps: null,
   semantic: null,
   semanticDark: null,
 };
 
-const TINT_HUES = { match: null, warm: 60, cool: 230, pure: "pure" };
-
 function tintHue() {
   if (state.tint === "match") return state.hue;
   if (state.tint === "pure") return null;
-  return TINT_HUES[state.tint];
+  if (state.tint === "warm") return 60;
+  return 230; // cool
 }
 
 function toast(msg) {
@@ -49,18 +53,22 @@ async function api(path, opts) {
 
 async function refreshPalette() {
   $("hueVal").textContent = `${state.hue}°`;
-  const payload = await api("/api/palette", {
+  const payload = { harmony: state.harmony, neutralTintHue: tintHue() };
+  if (state.accentExact) {
+    payload.primarySeed = state.baseSeed;
+    payload.accentSeed = state.accentSeed ?? undefined;
+  } else {
+    payload.baseSeed = state.baseSeed;
+    payload.targetHue = state.hue;
+  }
+  const result = await api("/api/palette", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      primaryHue: state.hue,
-      harmony: state.harmony,
-      neutralTintHue: tintHue(),
-    }),
+    body: JSON.stringify(payload),
   });
-  state.ramps = payload.colors;
-  state.semantic = payload.semantic;
-  state.semanticDark = payload.semanticDark;
+  state.ramps = result.colors;
+  state.semantic = result.semantic;
+  state.semanticDark = result.semanticDark;
   renderRamps();
   renderPreview();
 }
@@ -108,11 +116,12 @@ function applyFont(family, linkId) {
 function scaleVars() {
   const names = ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl", "5xl"];
   const exps = [-1, -0.5, 0, 1, 2, 3, 5, 7, 9];
-  return names.map((n, i) => [`--text-${n}`, (Math.pow(state.ratio, exps[i])).toFixed(3) + "rem"]);
+  return names.map((n, i) => [`--text-${n}`, Math.pow(state.ratio, exps[i]).toFixed(3) + "rem"]);
 }
 
 function renderPreview() {
   const pv = $("preview");
+  pv.dataset.vibe = state.vibeId ?? "custom";
   const sem = state.mode === "dark" ? state.semanticDark : state.semantic;
   const r = state.meta.radii[state.radiusStyle];
   const set = (k, v) => pv.style.setProperty(k, v);
@@ -145,6 +154,73 @@ function renderPreview() {
 
 /* ---------- controls ---------- */
 
+const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+function markActiveLook() {
+  document.querySelectorAll(".look-card").forEach((c) =>
+    c.classList.toggle("on", c.dataset.look === state.activeLookId));
+}
+
+/** One-click identity: a look applies everything — seeds, fonts, radius, scale, mode. */
+function applyLook(look) {
+  state.activeLookId = look.id;
+  state.vibeId = look.vibeId;
+  state.baseSeed = look.primarySeed;
+  state.accentSeed = look.accentSeed;
+  state.accentExact = true;
+  state.hue = Math.round(hexToHue(look.primarySeed));
+  const t = look.neutralTintHue;
+  state.tint = t == null ? "pure" : t === 60 ? "warm" : t === 230 ? "cool" : "match";
+  state.darkDefault = !!look.darkDefault;
+  state.mode = look.darkDefault ? "dark" : "light";
+  state.fonts = { ...look.fonts };
+  state.radiusStyle = look.radius;
+  state.ratio = look.ratio;
+  if (!state.name.trim()) state.name = slugify(look.label);
+  syncControls();
+  refreshPalette();
+  markActiveLook();
+}
+
+function renderLooks() {
+  const host = $("looksGrid");
+  host.innerHTML = "";
+  for (const look of state.looks) {
+    const card = document.createElement("div");
+    card.className = "look-card" + (state.activeLookId === look.id ? " on" : "");
+    card.dataset.look = look.id;
+
+    const sem = look.semantic, c = look.colors;
+    const frame = document.createElement("div");
+    frame.className = "lc-frame";
+    frame.style.background = sem.background;
+    frame.style.color = sem.text;
+    frame.innerHTML =
+      `<div class="lc-head" style="font-family:'${look.fonts.heading}',serif">Design, done</div>` +
+      `<div class="lc-lines"><i></i><i></i></div>` +
+      `<div class="lc-row"><span class="lc-btn" style="--lc-btn:${c.primary["600"]}">Get started</span>` +
+      `<span class="lc-chip" style="color:${c.accent["500"]}">${look.label.split(" ")[0]}</span></div>`;
+
+    const strip = document.createElement("div");
+    strip.className = "lc-strip";
+    for (const hex of [c.primary["200"], c.primary["400"], c.primary["600"], c.accent["500"], c.neutral["800"]]) {
+      const i = document.createElement("i");
+      i.style.background = hex;
+      strip.appendChild(i);
+    }
+
+    const name = document.createElement("div");
+    name.className = "lc-name";
+    name.textContent = look.label + (look.darkDefault ? "  ☾" : "");
+
+    card.append(frame, strip, name);
+    card.onclick = () => applyLook(look);
+    host.appendChild(card);
+
+    applyFont(look.fonts.heading, "gfl-" + slugify(look.fonts.heading));
+  }
+}
+
 function renderVibes() {
   const host = $("vibes");
   host.innerHTML = "";
@@ -157,13 +233,20 @@ function renderVibes() {
   }
 }
 
+/** Vibe chips live inside Fine-tune — they reset any picked look. */
 function applyVibe(v) {
   state.vibeId = v.id;
+  state.activeLookId = null;
+  markActiveLook();
+  state.baseSeed = v.primarySeed;
+  state.accentSeed = v.accentSeed;
+  state.accentExact = true;
+  state.hue = Math.round(hexToHue(v.primarySeed));
   state.darkDefault = v.darkModeDefault;
+  state.mode = v.darkModeDefault ? "dark" : "light";
   state.fonts = { ...v.fonts };
   state.radiusStyle = v.radius;
   state.ratio = v.typeRatio;
-  state.hue = Math.round(hexToHue(v.primarySeed));
   syncControls();
   refreshPalette().then(renderVibes);
 }
@@ -219,9 +302,9 @@ function buildSystemPayload() {
     typeScale: { ratio: Number(state.ratio), baseRem: 1 },
     extensions: {
       seeds: {
-        primarySeed: null,
-        accentSeed: null,
-        primaryHue: state.hue,
+        baseSeed: state.baseSeed,
+        accentSeed: state.accentSeed,
+        targetHue: state.hue,
         harmony: state.harmony,
         neutralTintHue: tintHue(),
         darkDefault: state.darkDefault,
@@ -252,6 +335,12 @@ async function save() {
 async function init() {
   state.meta = await api("/api/meta");
 
+  try {
+    const { looks } = await api("/api/looks");
+    state.looks = looks;
+    renderLooks();
+  } catch {}
+
   const ratioSel = $("ratio");
   for (const r of state.meta.ratios) {
     const o = document.createElement("option");
@@ -260,7 +349,6 @@ async function init() {
     ratioSel.appendChild(o);
   }
 
-  // font datalist
   try {
     const { results } = await api("/api/fonts?q=");
     const dl = $("fontList");
@@ -271,7 +359,6 @@ async function init() {
     }
   } catch {}
 
-  // load existing system from ?load=
   const params = new URLSearchParams(location.search);
   const loadName = params.get("load");
   if (loadName) {
@@ -282,20 +369,22 @@ async function init() {
       state.fonts = system.fonts;
       state.radiusStyle = system.radius.style;
       state.ratio = system.typeScale.ratio;
-      state.hue = seeds.primaryHue ?? Math.round(hexToHue(system.colors.primary["600"]));
+      state.baseSeed = seeds.baseSeed || seeds.primarySeed || system.colors.primary["500"];
+      state.accentSeed = seeds.accentSeed || system.colors.accent["500"];
+      state.accentExact = true;
+      state.hue = seeds.targetHue ?? Math.round(hexToHue(state.baseSeed));
       state.harmony = seeds.harmony ?? "analogous";
-      if (seeds.neutralTintHue === null || seeds.neutralTintHue === undefined) state.tint = "pure";
-      else if (seeds.neutralTintHue === 60) state.tint = "warm";
-      else if (seeds.neutralTintHue === 230) state.tint = "cool";
-      else state.tint = "match";
+      state.darkDefault = !!seeds.darkDefault;
+      state.mode = state.darkDefault ? "dark" : "light";
+      const t = seeds.neutralTintHue;
+      state.tint = t === undefined || t === null ? "pure" : t === 60 ? "warm" : t === 230 ? "cool" : "match";
       state.ramps = system.colors;
       state.semantic = system.semantic;
-      const dark = {
+      state.semanticDark = {
         background: system.semantic.background.dark, surface: system.semantic.surface.dark,
         text: system.semantic.text.dark, mutedText: system.semantic.mutedText.dark,
         border: system.semantic.border.dark, ring: system.semantic.ring,
       };
-      state.semanticDark = dark;
       renderRamps();
       renderPreview();
       syncControls();
@@ -307,10 +396,13 @@ async function init() {
     }
   }
 
-  // fresh session → corporate-clean defaults
-  const vibe = state.meta.vibes.find((v) => v.id === "corporate-clean");
-  state.name = "";
-  applyVibe(vibe);
+  // fresh session → open on an opinionated default look
+  const defaultLook = state.looks.find((l) => l.id === "boardroom") ?? state.looks[0];
+  if (defaultLook) applyLook(defaultLook);
+  else {
+    const vibe = state.meta.vibes.find((v) => v.id === "corporate-clean") ?? state.meta.vibes[0];
+    applyVibe(vibe);
+  }
   renderVibes();
 }
 
@@ -319,13 +411,50 @@ function ratioLabel(r) {
 }
 
 /* events */
-$("hue").addEventListener("input", (e) => { state.hue = Number(e.target.value); refreshPalette(); });
-$("harmony").addEventListener("change", (e) => { state.harmony = e.target.value; refreshPalette(); });
+$("hue").addEventListener("input", (e) => {
+  state.hue = Number(e.target.value);
+  state.accentExact = false; // slider takes over — rotate hue, keep vibe's L/C character
+  refreshPalette();
+});
+$("harmony").addEventListener("change", (e) => {
+  state.harmony = e.target.value;
+  state.accentExact = false;
+  refreshPalette();
+});
 $("ratio").addEventListener("change", (e) => { state.ratio = Number(e.target.value); renderPreview(); });
-$("randomize").onclick = () => { state.hue = Math.floor(Math.random() * 360); syncControls(); refreshPalette(); };
-$("rerollAccent").onclick = async () => {
+$("randomize").onclick = async () => {
+  const { seed } = await api("/api/random");
+  state.baseSeed = seed;
+  state.hue = Math.round(hexToHue(seed));
+  state.accentExact = false;
+  syncControls();
+  refreshPalette();
+};
+$("rerollAccent").onclick = () => {
   const shifts = ["analogous", "complementary", "triadic"];
   state.harmony = shifts[Math.floor(Math.random() * shifts.length)];
+  state.accentExact = false;
+  syncControls();
+  refreshPalette();
+};
+$("shuffle").onclick = async () => {
+  const { seed } = await api("/api/random");
+  const v = state.meta.vibes[Math.floor(Math.random() * state.meta.vibes.length)];
+  const harmonies = ["analogous", "complementary", "triadic"];
+  state.activeLookId = null;
+  markActiveLook();
+  state.vibeId = v.id;
+  state.baseSeed = seed;
+  state.accentSeed = null;
+  state.accentExact = false;
+  state.harmony = harmonies[Math.floor(Math.random() * harmonies.length)];
+  state.hue = Math.round(hexToHue(seed));
+  state.tint = ["match", "warm", "cool", "pure"][Math.floor(Math.random() * 4)];
+  state.darkDefault = Math.random() < 0.35;
+  state.mode = state.darkDefault ? "dark" : "light";
+  state.fonts = { ...v.fonts };
+  state.radiusStyle = v.radius;
+  state.ratio = v.typeRatio;
   syncControls();
   refreshPalette();
 };
