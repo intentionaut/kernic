@@ -18,9 +18,12 @@
     "type": "git",
     "url": "git+https://github.com/intentionaut/kernic.git"
   },
-  "homepage": "https://github.com/intentionaut/kernic#readme",
+  "homepage": "https://intentionaut.com/projects/",
   "bugs": "https://github.com/intentionaut/kernic/issues",
-  "author": "intentionaut",
+  "author": {
+    "name": "Saielle DaSilva",
+    "url": "https://intentionaut.com/projects/"
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",

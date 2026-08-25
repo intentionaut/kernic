@@ -10,7 +10,7 @@ Pick a vibe, tune a palette in your terminal, choose Google Fonts, then export t
 
 The CLI is and always will be free and open source (MIT). It generates complete design systems locally on your machine:
 
-- **8 theme families, 27 curated looks** — Retro (70s & 80s), Tech, Corporate, Minimal, Neon (Stripe-style gradient fintech), Soft Pastel, Luxury, Earthy/Organic. Pick a theme in Studio, click a look, done
+- **9 theme families, 36 curated looks** — Retro (70s & 80s), Tech, Corporate, Minimal, Neon (Stripe-style gradient fintech), Soft Pastel, Fun (loud solid color-blocks), Luxury, Earthy/Organic. Pick a theme in Studio, click a look, done
 - **Gradient tokens built in** — Neon looks ship with preconfigured `--gradient-*` tokens (mesh backdrops, gradient CTAs and headline text), exported to CSS vars and Tailwind v4 `bg-*` utilities
 - **Terminal palette picker** — live ANSI swatches, hue shifting, harmony rules (analogous / complementary / triadic / monochrome), tinted neutrals
 - **Real color science** — ramps generated in [OKLCH](https://oklch.com/) with automatic sRGB gamut fitting
@@ -58,7 +58,7 @@ The wizard walks through naming, vibe, palette tuning with live previews, headin
 kernic create launch-page --vibe corporate-clean --yes
 ```
 
-Vibes: `retro` (70s + 80s) · `tech` · `corporate` · `minimal` · `soft-pastel` · `luxury` · `earthy`
+Vibes: `retro` (70s + 80s) · `tech` · `corporate` · `neon` · `minimal` · `soft-pastel` · `fun` · `luxury` · `earthy`
 
 ## Commands
 
@@ -72,6 +72,8 @@ Vibes: `retro` (70s + 80s) · `tech` · `corporate` · `minimal` · `soft-pastel
 | `kernic studio [name]` | **Visual editor** — opens in your browser, live preview, saves locally |
 | `kernic export <name> -f <format>` | Output to stdout |
 | `kernic export <name> -f all -o ./design-system` | Write all token files |
+| `kernic context <name> -o ./` | **Agent context** — writes `design.md` + W3C `tokens.json` for AI coding tools |
+| `kernic mcp` | **MCP server** — let Claude Code / Cursor / Windsurf read your systems |
 | `kernic delete <name>` | Remove a system |
 
 ## Studio
@@ -99,6 +101,30 @@ kernic export midnight-neon -f css >> styles/global.css
 kernic export midnight-neon -f json > design/tokens.json
 ```
 
+## Use with AI agents
+
+Vibe-coded apps look generic because the agent invents colors as it goes. Give it your system instead:
+
+```bash
+kernic context midnight-neon -o .    # writes design.md + tokens.json
+```
+
+Then point your agent at it — one line in `AGENTS.md`, `CLAUDE.md`, or `.cursorrules`:
+
+```
+Visual design: follow ./design.md exactly. Use only its tokens — never invent raw hex values.
+```
+
+`design.md` carries explicit adherence rules plus every token (colors, semantics, type scale, radius, fonts); `tokens.json` is W3C DTCG-style, so Figma/Terrazzo/Style Dictionary pipelines read it too.
+
+Or let agents query kernic live over MCP:
+
+```bash
+claude mcp add kernic -- npx kernic mcp
+```
+
+Tools: `list_systems` · `get_system` · `get_tokens` (design-md / css / tailwind / fonts / dtcg / json) · `list_vibes`.
+
 ## Development
 
 ```bash
@@ -109,6 +135,10 @@ npm run build    # tsc → dist/
 ```
 
 Layout: `src/color.ts` (OKLCH engine) · `src/vibes.ts` (presets) · `src/fonts.ts` (Google Fonts) · `src/wizard.ts` (interactive flow) · `src/export.ts` (exporters) · `src/storage.ts` (~/.config/kernic)
+
+## Author
+
+Built by [Saielle DaSilva](https://intentionaut.com/projects/) — more tools and experiments at [intentionaut.com/projects](https://intentionaut.com/projects/).
 
 ## Contributing
 
