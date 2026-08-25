@@ -166,6 +166,63 @@ function renderPreview() {
 
 const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
+/* ---------- shuffle history (in-memory, session-only, never persisted) ---------- */
+const HIST_MAX = 8;
+let shuffleHistory = []; // {id, label, snap}
+let activeHistId = null;
+
+function snapshotState(label, id) {
+  return {
+    id,
+    label,
+    vibeId: state.vibeId,
+    baseSeed: state.baseSeed,
+    accentSeed: state.accentSeed,
+    accentExact: false,
+    hue: state.hue,
+    harmony: state.harmony,
+    tint: state.tint,
+    fonts: { ...state.fonts },
+    radiusStyle: state.radiusStyle,
+    ratio: state.ratio,
+    darkDefault: state.darkDefault,
+    mode: state.mode,
+    ramps: state.ramps,
+    semanticRaw: state.semanticRaw,
+  };
+}
+
+function restoreSnapshot(snap) {
+  Object.assign(state, snap, { fonts: { ...snap.fonts } });
+  activeHistId = snap.id;
+  syncControls();
+  renderRamps();
+  renderPreview();
+  renderVibes();
+  renderLooks();
+  markActiveLook();
+  renderHistory();
+}
+
+function renderHistory() {
+  const host = $("historyStrip");
+  host.innerHTML = "";
+  $("historySection").style.display = shuffleHistory.length ? "" : "none";
+  for (const h of shuffleHistory) {
+    const chip = document.createElement("button");
+    chip.className = "hist-chip" + (h.id === activeHistId ? " on" : "");
+    chip.title = h.label;
+    const r = h.snap.ramps;
+    for (const hex of [r.primary["400"], r.primary["600"], r.accent["500"], r.neutral["300"]]) {
+      const i = document.createElement("i");
+      i.style.background = hex;
+      chip.appendChild(i);
+    }
+    chip.onclick = () => restoreSnapshot(h.snap);
+    host.appendChild(chip);
+  }
+}
+
 function markActiveLook() {
   document.querySelectorAll(".look-card").forEach((c) =>
     c.classList.toggle("on", c.dataset.look === state.activeLookId));
@@ -480,8 +537,20 @@ $("shuffle").onclick = async () => {
   state.radiusStyle = v.radius;
   state.ratio = v.typeRatio;
   syncControls();
-  refreshPalette();
+  await refreshPalette();
   renderLooks();
+
+  // record this result in the session history (last 8, oldest drops off)
+  const entry = {
+    id: Date.now(),
+    label: `${v.label} · hue ${state.hue}° · ${state.mode}`,
+    snap: null,
+  };
+  entry.snap = snapshotState(entry.label, entry.id);
+  shuffleHistory.push(entry);
+  while (shuffleHistory.length > HIST_MAX) shuffleHistory.shift();
+  activeHistId = entry.id;
+  renderHistory();
 };
 document.querySelectorAll("#tintRow button").forEach((b) => {
   b.onclick = () => { state.tint = b.dataset.tint; syncControls(); refreshPalette(); };

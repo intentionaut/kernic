@@ -60,6 +60,18 @@ body {
 .lc-strip i { flex: 1; }
 .lc-name { font-size: 10.5px; color: var(--ui-dim); padding: 6px 8px; border-top: 1px solid var(--ui-border); }
 
+/* session shuffle history */
+#historySection { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+#historyStrip { display: flex; gap: 6px; flex-wrap: wrap; }
+.hist-chip {
+  display: flex; height: 20px; padding: 0;
+  border: 1px solid var(--ui-border); border-radius: 6px;
+  overflow: hidden; cursor: pointer; background: none;
+}
+.hist-chip:hover { border-color: var(--ui-accent); }
+.hist-chip.on { outline: 2px solid var(--ui-accent); }
+.hist-chip i { width: 10px; display: block; }
+
 /* fine-tune drawer */
 #fineTune { border-bottom: 1px solid var(--ui-border); padding-bottom: 10px; }
 #fineTune > summary {
