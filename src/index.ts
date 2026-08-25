@@ -201,4 +201,41 @@ program
     p.outro(`Deleted "${ds.name}".`);
   });
 
+program
+  .command("context")
+  .description("Write agent-readable design context (design.md + W3C tokens.json) into a project")
+  .argument("<name>")
+  .option("-o, --out <dir>", "target directory", ".")
+  .action(async (name: string, opts: { out: string }) => {
+    const ds = await loadSystem(name);
+    if (!ds) {
+      p.log.error(`Not found: "${name}". Try \`kernic list\`.`);
+      process.exit(1);
+    }
+    const { writeContext } = await import("./context.ts");
+    const written = await writeContext(ds, resolve(opts.out));
+    for (const file of written) p.log.step(`Wrote ${file}`);
+    p.note(
+      [
+        "Point your AI agent at it:",
+        "",
+        "  # AGENTS.md / CLAUDE.md / .cursorrules",
+        `  Visual design: follow ./design.md exactly (${ds.name}, vibe: ${ds.vibe}).`,
+        "  Use only its color, type, and radius tokens — never invent raw hex values.",
+        "",
+        "  # or let agents read it live via MCP:",
+        "  claude mcp add kernic -- npx kernic mcp",
+      ].join("\n"),
+      "Design context ready"
+    );
+  });
+
+program
+  .command("mcp")
+  .description("Run kernic as an MCP server (stdio) for Claude Code, Cursor, Windsurf, …")
+  .action(async () => {
+    const { startMcp } = await import("./mcp.ts");
+    await startMcp();
+  });
+
 program.parseAsync();
