@@ -1,4 +1,4 @@
-import { buildNeutral, buildRamp } from "./color.ts";
+import { buildGradients, buildNeutral, buildRamp } from "./color.ts";
 import type { DesignSystem, Ramp } from "./types.ts";
 import { RADIUS_PRESETS, type Vibe } from "./vibes.ts";
 
@@ -39,5 +39,6 @@ export function buildFromVibe(name: string, vibe: Vibe, fonts?: Partial<DesignSy
     fonts: { ...vibe.fonts, ...fonts },
     radius: { style: vibe.radius, ...radius },
     typeScale: { ratio: vibe.typeRatio, baseRem: 1 },
+    gradients: buildGradients(colors),
   };
 }

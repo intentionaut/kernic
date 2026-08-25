@@ -4,6 +4,7 @@ import {
   oklchToHex,
   hexToOklch,
   randomSeed,
+  buildGradients,
   type Harmony,
 } from "./color.ts";
 import { buildRamp, buildNeutral } from "./color.ts";
@@ -260,6 +261,7 @@ export async function runWizard(nameArg?: string): Promise<DesignSystem> {
     fonts: { heading, body, mono },
     radius: { style: radiusStyle, ...radius },
     typeScale: { ratio: Number(ratio), baseRem: 1 },
+    gradients: buildGradients(colors),
   };
 
   p.note(
