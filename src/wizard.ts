@@ -7,7 +7,7 @@ import {
   buildGradients,
   type Harmony,
 } from "./color.ts";
-import { buildRamp, buildNeutral } from "./color.ts";
+import { buildRamp, buildNeutral, type RampOptions } from "./color.ts";
 import { getFontCatalog, searchFonts, type FontInfo } from "./fonts.ts";
 import { renderPalette, renderRamp } from "./swatch.ts";
 import { normalizeName, saveSystem } from "./storage.ts";
@@ -34,15 +34,16 @@ function shiftHue(hex: string, deg: number): string {
   return oklchToHex({ ...o, h: o.h + deg });
 }
 
-function renderState(state: PaletteState): string {
+function renderState(state: PaletteState, compress: RampOptions = {}): string {
   return [
-    renderRamp("primary", buildRamp(state.primarySeed)),
-    renderRamp("accent", buildRamp(state.accentSeed)),
+    renderRamp("primary", buildRamp(state.primarySeed, compress)),
+    renderRamp("accent", buildRamp(state.accentSeed, compress)),
     renderRamp("neutral", buildNeutral(state.neutralTintHue)),
   ].join("\n");
 }
 
 async function pickPalette(vibe?: Vibe): Promise<PaletteState> {
+  const compress: RampOptions = vibe ? { chromaScale: vibe.chromaScale, lRange: vibe.lRange } : {};
   let state: PaletteState = vibe
     ? { primarySeed: vibe.primarySeed, accentSeed: vibe.accentSeed, neutralTintHue: vibe.neutralTintHue }
     : { primarySeed: randomSeed(), accentSeed: "", neutralTintHue: undefined };
@@ -93,7 +94,7 @@ async function pickPalette(vibe?: Vibe): Promise<PaletteState> {
 
   // Preview loop
   for (;;) {
-    p.note(renderState(state), "Palette preview");
+    p.note(renderState(state, compress), "Palette preview");
     const action = check(
       await p.select({
         message: "How does it look?",
@@ -244,9 +245,10 @@ export async function runWizard(nameArg?: string): Promise<DesignSystem> {
   ) as string;
 
   const darkDefault = vibe?.darkModeDefault ?? false;
+  const compress: RampOptions = vibe ? { chromaScale: vibe.chromaScale, lRange: vibe.lRange } : {};
   const colors = {
-    primary: buildRamp(palette.primarySeed),
-    accent: buildRamp(palette.accentSeed),
+    primary: buildRamp(palette.primarySeed, compress),
+    accent: buildRamp(palette.accentSeed, compress),
     neutral: buildNeutral(palette.neutralTintHue),
   };
   const radius = RADIUS_PRESETS[radiusStyle];

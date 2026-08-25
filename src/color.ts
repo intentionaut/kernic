@@ -102,14 +102,25 @@ const CHROMA_FACTOR: Record<string, number> = {
   "500": 1, "600": 0.97, "700": 0.84, "800": 0.68, "900": 0.55, "950": 0.42,
 };
 
+export interface RampOptions {
+  chromaScale?: number;
+  /** Compress the lightness span (e.g. [0.46, 0.94]) so ramps read as fewer, louder solids. */
+  lRange?: [number, number];
+}
+
+const L_MIN = TARGET_L["950"];
+const L_MAX = TARGET_L["50"];
+
 /** Build an 11-stop perceptual ramp from a seed color, preserving its hue. */
-export function buildRamp(seedHex: string, chromaScale = 1): Ramp {
+export function buildRamp(seedHex: string, opts: RampOptions = {}): Ramp {
   const base = hexToOklch(seedHex);
+  const [lo, hi] = opts.lRange ?? [L_MIN, L_MAX];
+  const k = (hi - lo) / (L_MAX - L_MIN);
   const ramp: Ramp = {};
   for (const stop of RAMP_STOPS) {
     ramp[stop] = oklchToHex({
-      l: TARGET_L[stop],
-      c: base.c * CHROMA_FACTOR[stop] * chromaScale,
+      l: lo + (TARGET_L[stop] - L_MIN) * k,
+      c: base.c * CHROMA_FACTOR[stop] * (opts.chromaScale ?? 1),
       h: base.h,
     });
   }

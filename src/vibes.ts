@@ -13,6 +13,10 @@ export interface Vibe {
   radius: RadiusStyle;
   typeRatio: number;
   fonts: { heading: string; body: string; mono: string };
+  /** Boost chroma beyond the seed's own saturation (gamut-clamped). */
+  chromaScale?: number;
+  /** Tight lightness window — fewer perceptually distinct colors, more solid blocks. */
+  lRange?: [number, number];
 }
 
 export const VIBES: Vibe[] = [
@@ -53,6 +57,13 @@ export const VIBES: Vibe[] = [
     fonts: { heading: "Quicksand", body: "Nunito Sans", mono: "Fira Code" },
   },
   {
+    id: "fun", label: "Fun", description: "Lisa Frank energy. Crayon-bright solids, few colors, all joy.",
+    primarySeed: "#ff1493", accentSeed: "#00cfff", neutralTintHue: 310,
+    darkModeDefault: false, radius: "pill", typeRatio: 1.333,
+    chromaScale: 1.25, lRange: [0.46, 0.94],
+    fonts: { heading: "Baloo 2", body: "Fredoka", mono: "Nunito" },
+  },
+  {
     id: "luxury", label: "Luxury", description: "Charcoal, gold serif, slow confidence.",
     primarySeed: "#d4af37", accentSeed: "#8b6f47", neutralTintHue: 45,
     darkModeDefault: true, radius: "sharp", typeRatio: 1.618,
@@ -70,7 +81,8 @@ export const RADIUS_PRESETS: Record<RadiusStyle, { sm: string; md: string; lg: s
   sharp: { sm: "0rem", md: "0rem", lg: "0.125rem", xl: "0.25rem" },
   soft: { sm: "0.25rem", md: "0.375rem", lg: "0.5rem", xl: "0.75rem" },
   round: { sm: "0.375rem", md: "0.625rem", lg: "1rem", xl: "1.5rem" },
-  pill: { sm: "0.5rem", md: "9999px", lg: "9999px", xl: "9999px" },
+  // pill: controls (sm/md) go full stadium; containers (lg/xl) stay bounded
+  pill: { sm: "9999px", md: "9999px", lg: "1.5rem", xl: "2rem" },
 };
 
 export function getVibe(id: string): Vibe | undefined {

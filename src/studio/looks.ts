@@ -9,6 +9,8 @@ export interface Look {
   fonts: { heading: string; body: string; mono: string };
   radius: "sharp" | "soft" | "round" | "pill";
   ratio: number;
+  chromaScale?: number | null;
+  lRange?: [number, number] | null;
 }
 
 /**
@@ -56,6 +58,26 @@ export const LOOKS: Look[] = [
     fonts: { heading: "Plus Jakarta Sans", body: "Inter", mono: "Fira Code" }, radius: "round", ratio: 1.25 },
   { id: "aurora-pay", label: "Aurora Pay", vibeId: "neon", primarySeed: "#8b5cf6", accentSeed: "#22d3ee", neutralTintHue: 265, darkDefault: true,
     fonts: { heading: "Manrope", body: "Inter", mono: "JetBrains Mono" }, radius: "soft", ratio: 1.25 },
+  { id: "citrus-circuit", label: "Citrus Circuit", vibeId: "neon", primarySeed: "#84cc16", accentSeed: "#22d3ee", neutralTintHue: 120, darkDefault: true,
+    fonts: { heading: "Space Grotesk", body: "Inter", mono: "Fira Code" }, radius: "sharp", ratio: 1.25 },
+  { id: "sunset-protocol", label: "Sunset Protocol", vibeId: "neon", primarySeed: "#fb923c", accentSeed: "#e879f9", neutralTintHue: 30, darkDefault: true,
+    fonts: { heading: "Unbounded", body: "Inter", mono: "Space Mono" }, radius: "round", ratio: 1.333 },
+  { id: "hyper-beat", label: "Hyperbeat", vibeId: "neon", primarySeed: "#f43f5e", accentSeed: "#facc15", neutralTintHue: 340, darkDefault: true,
+    fonts: { heading: "Plus Jakarta Sans", body: "Inter", mono: "JetBrains Mono" }, radius: "soft", ratio: 1.25 },
+
+  // ── Fun ────────────────────────────────────────────
+  { id: "sticker-shock", label: "Sticker Shock", vibeId: "fun", primarySeed: "#ff1493", accentSeed: "#00cfff", neutralTintHue: 310, darkDefault: false,
+    fonts: { heading: "Baloo 2", body: "Fredoka", mono: "Nunito" }, radius: "pill", ratio: 1.333,
+    chromaScale: 1.25, lRange: [0.46, 0.94] },
+  { id: "splash-zone", label: "Splash Zone", vibeId: "fun", primarySeed: "#ff2d78", accentSeed: "#00cfff", neutralTintHue: 330, darkDefault: false,
+    fonts: { heading: "Fredoka", body: "Baloo 2", mono: "Nunito" }, radius: "round", ratio: 1.333,
+    chromaScale: 1.25, lRange: [0.46, 0.94] },
+  { id: "candy-shop", label: "Candy Shop", vibeId: "fun", primarySeed: "#a855f7", accentSeed: "#ff5ca8", neutralTintHue: 290, darkDefault: false,
+    fonts: { heading: "Quicksand", body: "Fredoka", mono: "Fira Code" }, radius: "pill", ratio: 1.2,
+    chromaScale: 1.25, lRange: [0.46, 0.94] },
+  { id: "tangerine-flux", label: "Tangerine Flux", vibeId: "fun", primarySeed: "#ff6b35", accentSeed: "#00cfc0", neutralTintHue: 40, darkDefault: false,
+    fonts: { heading: "Sora", body: "DM Sans", mono: "Nunito" }, radius: "round", ratio: 1.333,
+    chromaScale: 1.25, lRange: [0.46, 0.94] },
 
   // ── Minimal ────────────────────────────────────────
   { id: "paper-ink", label: "Paper & Ink", vibeId: "minimal", primarySeed: "#18181b", accentSeed: "#3b82f6", neutralTintHue: null, darkDefault: false,

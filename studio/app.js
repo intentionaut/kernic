@@ -13,6 +13,8 @@ const state = {
   ratio: 1.25,
   darkDefault: false,
   mode: "light",
+  chromaScale: null,
+  lRange: null,
   meta: null,
   looks: [],
   activeLookId: null,
@@ -66,6 +68,8 @@ async function api(path, opts) {
 async function refreshPalette() {
   $("hueVal").textContent = `${state.hue}°`;
   const payload = { harmony: state.harmony, neutralTintHue: tintHue() };
+  if (state.chromaScale != null) payload.chromaScale = state.chromaScale;
+  if (state.lRange) payload.lRange = state.lRange;
   if (state.accentExact) {
     payload.primarySeed = state.baseSeed;
     payload.accentSeed = state.accentSeed ?? undefined;
@@ -194,6 +198,8 @@ function snapshotState(label, id) {
     ratio: state.ratio,
     darkDefault: state.darkDefault,
     mode: state.mode,
+    chromaScale: state.chromaScale,
+    lRange: state.lRange,
     ramps: state.ramps,
     semanticRaw: state.semanticRaw,
     gradients: state.gradients,
@@ -248,6 +254,8 @@ function applyLook(look) {
   state.tint = t == null ? "pure" : t === 60 ? "warm" : t === 230 ? "cool" : "match";
   state.darkDefault = !!look.darkDefault;
   state.mode = look.darkDefault ? "dark" : "light";
+  state.chromaScale = look.chromaScale ?? null;
+  state.lRange = look.lRange ?? null;
   state.fonts = { ...look.fonts };
   state.radiusStyle = look.radius;
   state.ratio = look.ratio;
@@ -338,6 +346,8 @@ function applyVibe(v) {
   state.hue = Math.round(hexToHue(v.primarySeed));
   state.darkDefault = v.darkModeDefault;
   state.mode = v.darkModeDefault ? "dark" : "light";
+  state.chromaScale = v.chromaScale ?? null;
+  state.lRange = v.lRange ?? null;
   state.fonts = { ...v.fonts };
   state.radiusStyle = v.radius;
   state.ratio = v.typeRatio;
@@ -403,6 +413,8 @@ function buildSystemPayload() {
         harmony: state.harmony,
         neutralTintHue: tintHue(),
         darkDefault: state.darkDefault,
+        ...(state.chromaScale != null ? { chromaScale: state.chromaScale } : {}),
+        ...(state.lRange ? { lRange: state.lRange } : {}),
       },
     },
   };
@@ -473,6 +485,8 @@ async function init() {
       state.mode = state.darkDefault ? "dark" : "light";
       const t = seeds.neutralTintHue;
       state.tint = t === undefined || t === null ? "pure" : t === 60 ? "warm" : t === 230 ? "cool" : "match";
+      state.chromaScale = seeds.chromaScale ?? null;
+      state.lRange = seeds.lRange ?? null;
       state.ramps = system.colors;
       state.semanticRaw = system.semantic;
       state.gradients = system.gradients ?? null;
@@ -541,6 +555,8 @@ $("shuffle").onclick = async () => {
   state.harmony = harmonies[Math.floor(Math.random() * harmonies.length)];
   state.hue = Math.round(hexToHue(seed));
   state.tint = ["match", "warm", "cool", "pure"][Math.floor(Math.random() * 4)];
+  state.chromaScale = null;
+  state.lRange = null;
   state.darkDefault = Math.random() < 0.35;
   state.mode = state.darkDefault ? "dark" : "light";
   state.fonts = { ...v.fonts };

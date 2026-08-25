@@ -3,9 +3,10 @@ import type { DesignSystem, Ramp } from "./types.ts";
 import { RADIUS_PRESETS, type Vibe } from "./vibes.ts";
 
 export function rampsFromVibe(vibe: Vibe): { primary: Ramp; accent: Ramp; neutral: Ramp } {
+  const compress = { chromaScale: vibe.chromaScale, lRange: vibe.lRange };
   return {
-    primary: buildRamp(vibe.primarySeed),
-    accent: buildRamp(vibe.accentSeed),
+    primary: buildRamp(vibe.primarySeed, compress),
+    accent: buildRamp(vibe.accentSeed, compress),
     neutral: buildNeutral(vibe.neutralTintHue),
   };
 }

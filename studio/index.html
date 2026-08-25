@@ -114,26 +114,105 @@
           <button class="pv-btn pv-ghost">See how it works</button>
         </div>
       </section>
+
+      <section class="pv-section">
+        <p class="pv-label">Stats</p>
+        <div class="pv-stats">
+          <div class="pv-stat"><span class="pv-stat-num">99.98%</span><span class="pv-stat-cap">uptime SLA</span></div>
+          <div class="pv-stat"><span class="pv-stat-num">12k</span><span class="pv-stat-cap">teams shipping</span></div>
+          <div class="pv-stat"><span class="pv-stat-num">4.9★</span><span class="pv-stat-cap">avg. rating</span></div>
+          <div class="pv-stat"><span class="pv-stat-num">38ms</span><span class="pv-stat-cap">median latency</span></div>
+        </div>
+      </section>
+
       <section class="pv-cards">
         <article class="pv-card"><div class="pv-thumb t1"></div><h3>Tokens as JSON</h3><p>Plain files you own. Version them, diff them, share them.</p><span class="pv-chip">core</span></article>
         <article class="pv-card"><div class="pv-thumb t2"></div><h3>Perceptual ramps</h3><p>OKLCH color with gamut fitting from 50 to 950.</p><span class="pv-chip">color</span></article>
         <article class="pv-card"><div class="pv-thumb t3"></div><h3>Type that breathes</h3><p>Scales built on musical ratios, not vibes alone.</p><span class="pv-chip">type</span></article>
       </section>
+
+      <section class="pv-section">
+        <p class="pv-label">Buttons &amp; badges</p>
+        <div class="pv-row left wrap">
+          <button class="pv-btn pv-primary">Primary action</button>
+          <button class="pv-btn pv-ghost">Secondary</button>
+          <button class="pv-btn pv-primary pv-sm">Small</button>
+          <button class="pv-btn pv-primary" disabled>Disabled</button>
+        </div>
+        <div class="pv-row left wrap">
+          <span class="pv-badge solid">New</span>
+          <span class="pv-badge accent">Beta</span>
+          <span class="pv-badge outline">v2.4.1</span>
+          <code class="pv-inline-code">npm install acme</code>
+        </div>
+      </section>
+
+      <section class="pv-section">
+        <p class="pv-label">System messages</p>
+        <div class="pv-grid-2">
+          <div class="pv-alert ok"><div><p class="pv-alert-title">Changes published</p><p class="pv-alert-body">Your update is live for every workspace member.</p></div></div>
+          <div class="pv-alert warn"><div><p class="pv-alert-title">Storage almost full</p><p class="pv-alert-body">You're using 92% of your plan. Free up space or upgrade.</p></div></div>
+        </div>
+      </section>
+
       <section class="pv-form">
         <h2 class="pv-h2">Stay in the loop</h2>
         <div class="pv-field"><label>Email</label><input type="text" placeholder="you@studio.dev"></div>
-        <div class="pv-field"><label>Note</label><textarea rows="2"></textarea></div>
+        <div class="pv-field has-error"><label>Team name</label><input type="text" value="A"><p class="pv-error-msg">Team name must be at least 3 characters.</p></div>
+        <div class="pv-field"><label>Note</label><textarea rows="2"></textarea><p class="pv-hint">We'll only use this to follow up.</p></div>
         <button class="pv-btn pv-primary">Subscribe</button>
       </section>
-      <section class="pv-specimen">
-        <div class="spec-row s-xs">xs — The quick brown fox</div>
-        <div class="spec-row s-sm">sm — The quick brown fox</div>
-        <div class="spec-row s-base">base — The quick brown fox</div>
-        <div class="spec-row s-lg">lg — The quick brown fox</div>
-        <div class="spec-row s-xl">xl — The quick brown fox</div>
-        <div class="spec-row s-2xl">2xl — The quick brown fox</div>
-        <code class="spec-code">mono -- const kerning = 0.02em;</code>
+
+      <section class="pv-section">
+        <p class="pv-label">Data table</p>
+        <div class="pv-table-wrap">
+          <table class="pv-table">
+            <thead><tr><th>Project</th><th>Owner</th><th>Status</th><th align="right">Budget</th></tr></thead>
+            <tbody>
+              <tr><td>Brand refresh</td><td>Priya</td><td><span class="pv-badge solid">Active</span></td><td align="right">$12,400</td></tr>
+              <tr><td>Mobile app v2</td><td>Marcus</td><td><span class="pv-badge outline">Draft</span></td><td align="right">$48,000</td></tr>
+              <tr><td>Design tokens migration</td><td>Sofia</td><td><span class="pv-badge accent">In review</span></td><td align="right">$6,200</td></tr>
+              <tr><td>Q3 campaign</td><td>Jules</td><td><span class="pv-badge outline">Paused</span></td><td align="right">$21,750</td></tr>
+            </tbody>
+          </table>
+        </div>
       </section>
+
+      <section class="pv-section">
+        <p class="pv-label">Pricing</p>
+        <div class="pv-pricing">
+          <article class="pv-tier"><h3>Hobby</h3><div class="pv-price">$0<span>/mo</span></div><ul><li>1 project</li><li>Community support</li><li>Basic analytics</li></ul><button class="pv-btn pv-ghost wide">Choose Hobby</button></article>
+          <article class="pv-tier featured"><span class="pv-flag">Most popular</span><h3>Studio</h3><div class="pv-price">$20<span>/mo</span></div><ul><li>Unlimited projects</li><li>Priority support</li><li>Advanced analytics</li></ul><button class="pv-btn pv-primary wide">Choose Studio</button></article>
+          <article class="pv-tier"><h3>Agency</h3><div class="pv-price">$79<span>/mo</span></div><ul><li>Client workspaces</li><li>Dedicated manager</li><li>SLA &amp; SSO</li></ul><button class="pv-btn pv-ghost wide">Choose Agency</button></article>
+        </div>
+      </section>
+
+      <section class="pv-section">
+        <p class="pv-label">Type hierarchy</p>
+        <div class="pv-type-row"><span class="pv-tag">H1</span><span class="t-h1">Ship software that looks intentional</span></div>
+        <div class="pv-type-row"><span class="pv-tag">H2</span><span class="t-h2">Team activity this week</span></div>
+        <div class="pv-type-row"><span class="pv-tag">H3</span><span class="t-h3">Overdue items need owners</span></div>
+        <div class="pv-type-row"><span class="pv-tag">Body</span><span class="t-body">You have four tasks due before Friday. Assign an owner to each one so nothing slips through the cracks.</span></div>
+        <div class="pv-type-row"><span class="pv-tag">Muted</span><span class="t-muted">Last synced 3 minutes ago from your connected workspace.</span></div>
+        <div class="pv-type-row"><span class="pv-tag">Caption</span><span class="t-caption">Updated automatically every 15 minutes</span></div>
+        <div class="pv-type-row"><span class="pv-tag">Overline</span><span class="t-overline">Sprint 14</span></div>
+        <div class="pv-type-row"><span class="pv-tag">Link</span><a class="t-link">View full changelog</a></div>
+        <div class="pv-type-row"><span class="pv-tag">Code</span><code class="t-code">const kerning = 0.02em;</code></div>
+      </section>
+
+      <section class="pv-section">
+        <p class="pv-label">Dark surface</p>
+        <div class="pv-dark">
+          <h4>Weekly digest</h4>
+          <p>A dark surface panel for contrast checks — secondary copy sits at reduced opacity over the deepest neutral.</p>
+          <button class="pv-btn pv-accent">Open digest</button>
+        </div>
+      </section>
+
+      <footer class="pv-footer">
+        <span>© 2026 Acme Inc.</span>
+        <span>Built with kernic</span>
+      </footer>
     </div>
   </main>
 </div>

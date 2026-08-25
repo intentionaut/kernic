@@ -18,6 +18,7 @@ import { getFontCatalog, searchFonts } from "../fonts.ts";
 import { loadSystem, normalizeName, saveSystem } from "../storage.ts";
 import type { DesignSystem, Ramp } from "../types.ts";
 import { RADIUS_PRESETS, VIBES, type Vibe } from "../vibes.ts";
+import { PREVIEW_COPY } from "./copy.ts";
 import { LOOKS } from "./looks.ts";
 
 const STUDIO_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "studio");
@@ -53,6 +54,8 @@ interface PaletteRequest {
   accentSeed?: string;
   harmony?: Harmony;
   neutralTintHue?: number | null;
+  chromaScale?: number;
+  lRange?: [number, number];
 }
 
 function buildPalette(req: PaletteRequest) {
@@ -63,13 +66,20 @@ function buildPalette(req: PaletteRequest) {
       ? oklchToHex({ l: base.l, c: base.c, h: (((req.targetHue ?? base.h) % 360) + 360) % 360 })
       : oklchToHex({ l: 0.6, c: 0.17, h: ((req.targetHue ?? 220) % 360) + 360 % 360 }));
   const accentSeed = req.accentSeed ?? harmonize(primarySeed, req.harmony ?? "analogous");
+  const compress = { chromaScale: req.chromaScale, lRange: req.lRange };
   const colors = {
-    primary: buildRamp(primarySeed),
-    accent: buildRamp(accentSeed),
+    primary: buildRamp(primarySeed, compress),
+    accent: buildRamp(accentSeed, compress),
     neutral: buildNeutral(req.neutralTintHue ?? undefined),
   };
   return {
-    seeds: { primarySeed, accentSeed, neutralTintHue: req.neutralTintHue ?? null },
+    seeds: {
+      primarySeed,
+      accentSeed,
+      neutralTintHue: req.neutralTintHue ?? null,
+      ...(req.chromaScale != null ? { chromaScale: req.chromaScale } : {}),
+      ...(req.lRange ? { lRange: req.lRange } : {}),
+    },
     colors,
     semantic: semanticFromRamps(colors, false),
     semanticDark: semanticFromRamps(colors, true),
@@ -92,8 +102,8 @@ function deriveSeeds(ds: DesignSystem) {
 }
 
 function vibePublic(v: Vibe) {
-  const { id, label, description, radius, typeRatio, fonts, darkModeDefault, primarySeed, accentSeed, neutralTintHue } = v;
-  return { id, label, description, radius, typeRatio, fonts, darkModeDefault, primarySeed, accentSeed, neutralTintHue };
+  const { id, label, description, radius, typeRatio, fonts, darkModeDefault, primarySeed, accentSeed, neutralTintHue, chromaScale, lRange } = v;
+  return { id, label, description, radius, typeRatio, fonts, darkModeDefault, primarySeed, accentSeed, neutralTintHue, chromaScale, lRange };
 }
 
 async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
@@ -101,9 +111,10 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL): P
 
   if (req.method === "GET" && path === "/api/looks") {
     const looks = LOOKS.map((l) => {
+      const compress = { chromaScale: l.chromaScale ?? undefined, lRange: l.lRange ?? undefined };
       const colors = {
-        primary: buildRamp(l.primarySeed),
-        accent: buildRamp(l.accentSeed),
+        primary: buildRamp(l.primarySeed, compress),
+        accent: buildRamp(l.accentSeed, compress),
         neutral: buildNeutral(l.neutralTintHue ?? undefined),
       };
       return { ...l, colors, semantic: semanticFromRamps(colors, l.darkDefault), gradients: buildGradients(colors) };
@@ -115,6 +126,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL): P
     return json(res, 200, {
       version: "0.1.0",
       vibes: VIBES.map(vibePublic),
+      copy: PREVIEW_COPY,
       radii: RADIUS_PRESETS,
       ratios: [1.125, 1.2, 1.25, 1.333, 1.414, 1.618],
       spaces: [0.5, 1, 1.5, 2, 3, 4, 6, 8, 12, 16],
