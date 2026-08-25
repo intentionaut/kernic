@@ -8,6 +8,12 @@
     "kn": "./dist/index.js"
   },
   "main": "dist/index.js",
+  "files": [
+    "dist",
+    "studio",
+    "README.md",
+    "LICENSE"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/intentionaut/kernic.git"

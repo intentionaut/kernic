@@ -23,7 +23,7 @@ The CLI is and always will be free and open source (MIT). It generates complete 
 | Palette + font generation | ✅ | ✅ |
 | CSS / Tailwind / JSON exports | ✅ | ✅ |
 | Local token storage | ✅ | ✅ |
-| Visual editor (browser) | — | ✅ |
+| Local visual editor (`kernic studio`) | ✅ | ✅ |
 | Motion & animation tokens | — | ✅ |
 | Shadows, depth & rhythm scales | — | ✅ |
 | Multi-brand management | — | ✅ |
@@ -68,9 +68,22 @@ Vibes: `cyberpunk` · `brutalist` · `soft-pastel` · `corporate-clean` · `eart
 | `kernic list` | List saved systems |
 | `kernic show <name>` | Full spec + swatches |
 | `kernic palette <name>` | Just the swatches |
+| `kernic studio [name]` | **Visual editor** — opens in your browser, live preview, saves locally |
 | `kernic export <name> -f <format>` | Output to stdout |
 | `kernic export <name> -f all -o ./design-system` | Write all token files |
 | `kernic delete <name>` | Remove a system |
+
+## Studio
+
+`kernic studio` launches a local web app (127.0.0.1 only) where you design visually instead of in the terminal:
+
+- Live-rendered preview — nav, hero, cards, form, type specimen — restyled as you tweak
+- Hue slider + harmony controls with instant OKLCH ramp regeneration
+- Searchable Google Fonts loaded into the preview
+- Light/dark mode toggle, corner-radius and type-scale controls
+- Click any swatch to copy its hex
+
+Everything saves to the same local JSON store the CLI uses. The cloud Studio adds multi-brand management, sync, and version history on top of this foundation.
 
 ## Using it in a project
 

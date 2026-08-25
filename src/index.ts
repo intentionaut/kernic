@@ -171,6 +171,20 @@ program
   });
 
 program
+  .command("studio")
+  .description("Open the visual Studio in your browser (local, free preview)")
+  .argument("[name]", "edit an existing system")
+  .option("--no-open", "don't launch the browser automatically")
+  .action(async (name: string | undefined, opts: { open: boolean }) => {
+    const { startStudio } = await import("./studio/server.ts");
+    if (name && !(await loadSystem(name))) {
+      p.log.error(`Not found: "${name}". Try \`kernic list\`.`);
+      process.exit(1);
+    }
+    await startStudio(name, { open: opts.open });
+  });
+
+program
   .command("delete")
   .alias("rm")
   .description("Delete a saved design system")
