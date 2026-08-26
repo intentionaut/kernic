@@ -57,7 +57,7 @@ export const VIBES: Vibe[] = [
     fonts: { heading: "Quicksand", body: "Nunito Sans", mono: "Fira Code" },
   },
   {
-    id: "fun", label: "Fun", description: "Lisa Frank energy. Crayon-bright solids, few colors, all joy.",
+    id: "fun", label: "Fun", description: "Crayon-bright solids. Few colors, all joy.",
     primarySeed: "#ff1493", accentSeed: "#00cfff", neutralTintHue: 310,
     darkModeDefault: false, radius: "pill", typeRatio: 1.333,
     chromaScale: 1.25, lRange: [0.46, 0.94],
