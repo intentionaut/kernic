@@ -180,20 +180,7 @@ async function pickFont(
 export async function runWizard(nameArg?: string): Promise<DesignSystem> {
   p.intro("kernic — kern your whole app");
 
-  // 1. Name
-  let name = nameArg?.trim();
-  while (!name) {
-    name = check(
-      await p.text({
-        message: "What's this design system called?",
-        placeholder: "e.g. midnight-neon, acme-brand",
-        validate: (v) => (!normalizeName(v) ? "Letters, numbers and dashes please" : undefined),
-      })
-    );
-  }
-  const normalizedName = normalizeName(name)!;
-
-  // 2. Vibe
+  // 1. Vibe
   const vibeId = check(
     await p.select({
       message: "Pick a vibe",
@@ -205,17 +192,17 @@ export async function runWizard(nameArg?: string): Promise<DesignSystem> {
   ) as string;
   const vibe = VIBES.find((v) => v.id === vibeId);
 
-  // 3. Palette
+  // 2. Palette
   const palette = await pickPalette(vibe);
 
-  // 4. Fonts
+  // 3. Fonts
   const { fonts: catalog, live } = await getFontCatalog();
   if (!live) p.log.warn("Offline — using bundled font catalog.");
   const heading = await pickFont(catalog, live, "Heading font", vibe ? [vibe.fonts.heading] : []);
   const body = await pickFont(catalog, live, "Body font", vibe ? [vibe.fonts.body, heading] : [heading]);
   const mono = await pickFont(catalog, live, "Mono font", vibe ? [vibe.fonts.mono] : ["JetBrains Mono"]);
 
-  // 5. Radius
+  // 4. Radius
   const radiusStyle = check(
     await p.select({
       message: "Corner radius style",
@@ -228,7 +215,7 @@ export async function runWizard(nameArg?: string): Promise<DesignSystem> {
     })
   ) as keyof typeof RADIUS_PRESETS;
 
-  // 6. Type scale
+  // 5. Type scale
   const ratio = check(
     await p.select({
       message: "Type scale ratio",
@@ -252,6 +239,19 @@ export async function runWizard(nameArg?: string): Promise<DesignSystem> {
     neutral: buildNeutral(palette.neutralTintHue),
   };
   const radius = RADIUS_PRESETS[radiusStyle];
+
+  // 6. Name
+  let name = nameArg?.trim();
+  while (!name) {
+    name = check(
+      await p.text({
+        message: "What's this design system called?",
+        placeholder: "e.g. midnight-neon, acme-brand",
+        validate: (v) => (!normalizeName(v) ? "Letters, numbers and dashes please" : undefined),
+      })
+    );
+  }
+  const normalizedName = normalizeName(name)!;
 
   const ds: DesignSystem = {
     schemaVersion: 1,

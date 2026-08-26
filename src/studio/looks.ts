@@ -95,14 +95,6 @@ export const LOOKS: Look[] = [
   { id: "bubblegum", label: "Bubblegum", vibeId: "soft-pastel", primarySeed: "#fb7185", accentSeed: "#38bdf8", neutralTintHue: 350, darkDefault: false,
     fonts: { heading: "Baloo 2", body: "Fredoka", mono: "Nunito" }, radius: "pill", ratio: 1.333 },
 
-  // ── Luxury ─────────────────────────────────────────
-  { id: "black-gold", label: "Black Gold", vibeId: "luxury", primarySeed: "#d4af37", accentSeed: "#8b6f47", neutralTintHue: 45, darkDefault: true,
-    fonts: { heading: "Playfair Display", body: "Lato", mono: "Cormorant Garamond" }, radius: "sharp", ratio: 1.618 },
-  { id: "velvet-hour", label: "Velvet Hour", vibeId: "luxury", primarySeed: "#d4a373", accentSeed: "#e5b3a1", neutralTintHue: 30, darkDefault: true,
-    fonts: { heading: "Cormorant Garamond", body: "Lato", mono: "EB Garamond" }, radius: "sharp", ratio: 1.618 },
-  { id: "noir-editorial", label: "Noir Editorial", vibeId: "luxury", primarySeed: "#1c1917", accentSeed: "#b45309", neutralTintHue: 40, darkDefault: false,
-    fonts: { heading: "Playfair Display", body: "Source Sans 3", mono: "JetBrains Mono" }, radius: "sharp", ratio: 1.5 },
-
   // ── Earthy / Organic ───────────────────────────────
   { id: "terracotta", label: "Terracotta", vibeId: "earthy", primarySeed: "#c2703d", accentSeed: "#7d9b76", neutralTintHue: 60, darkDefault: false,
     fonts: { heading: "Fraunces", body: "Source Sans 3", mono: "Courier Prime" }, radius: "soft", ratio: 1.25 },

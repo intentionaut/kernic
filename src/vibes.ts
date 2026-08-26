@@ -64,12 +64,6 @@ export const VIBES: Vibe[] = [
     fonts: { heading: "Baloo 2", body: "Fredoka", mono: "Nunito" },
   },
   {
-    id: "luxury", label: "Luxury", description: "Charcoal, gold serif, slow confidence.",
-    primarySeed: "#d4af37", accentSeed: "#8b6f47", neutralTintHue: 45,
-    darkModeDefault: true, radius: "sharp", typeRatio: 1.618,
-    fonts: { heading: "Playfair Display", body: "Lato", mono: "Cormorant Garamond" },
-  },
-  {
     id: "earthy", label: "Earthy / Organic", description: "Terracotta, sage, cream.",
     primarySeed: "#c2703d", accentSeed: "#7d9b76", neutralTintHue: 60,
     darkModeDefault: false, radius: "soft", typeRatio: 1.25,

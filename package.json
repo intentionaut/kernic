@@ -1,11 +1,10 @@
 {
   "name": "kernic",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Kern your whole app — design systems from the terminal. Palette picker, Google Fonts, vibes; free forever CLI, export CSS vars / Tailwind v4 / JSON tokens.",
   "type": "module",
   "bin": {
-    "kernic": "./dist/index.js",
-    "kn": "./dist/index.js"
+    "kernic": "dist/index.js"
   },
   "main": "dist/index.js",
   "files": [

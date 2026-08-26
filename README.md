@@ -10,7 +10,7 @@ Pick a vibe, tune a palette in your terminal, choose Google Fonts, then export t
 
 The CLI is and always will be free and open source (MIT). It generates complete design systems locally on your machine:
 
-- **9 theme families, 36 curated looks** — Retro (70s & 80s), Tech, Corporate, Minimal, Neon (Stripe-style gradient fintech), Soft Pastel, Fun (loud solid color-blocks), Luxury, Earthy/Organic. Pick a theme in Studio, click a look, done
+- **8 theme families, 33 curated looks** — Retro (70s & 80s), Tech, Corporate, Minimal, Neon (Stripe-style gradient fintech), Soft Pastel, Fun (loud solid color-blocks), Earthy/Organic. Pick a theme in Studio, click a look, done
 - **Gradient tokens built in** — Neon looks ship with preconfigured `--gradient-*` tokens (mesh backdrops, gradient CTAs and headline text), exported to CSS vars and Tailwind v4 `bg-*` utilities
 - **Terminal palette picker** — live ANSI swatches, hue shifting, harmony rules (analogous / complementary / triadic / monochrome), tinted neutrals
 - **Real color science** — ramps generated in [OKLCH](https://oklch.com/) with automatic sRGB gamut fitting
@@ -58,7 +58,7 @@ The wizard walks through naming, vibe, palette tuning with live previews, headin
 kernic create launch-page --vibe corporate-clean --yes
 ```
 
-Vibes: `retro` (70s + 80s) · `tech` · `corporate` · `neon` · `minimal` · `soft-pastel` · `fun` · `luxury` · `earthy`
+Vibes: `retro` (70s + 80s) · `tech` · `corporate` · `neon` · `minimal` · `soft-pastel` · `fun` · `earthy`
 
 ## Commands
 

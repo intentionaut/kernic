@@ -157,6 +157,10 @@ function renderPreview() {
   set("--pv-muted-text", sem.mutedText);
   set("--pv-border", sem.border);
   set("--semantic-ring", sem.ring);
+  const inv = pickMode(state.semanticRaw, state.mode === "light" ? "dark" : "light");
+  set("--pv-inverse-bg", inv.background);
+  set("--pv-inverse-text", inv.text);
+  set("--pv-inverse-muted", inv.mutedText);
   set("--font-heading", `"${state.fonts.heading}", ui-serif, Georgia, serif`);
   set("--font-body", `"${state.fonts.body}", ui-sans-serif, system-ui, sans-serif`);
   set("--font-mono", `"${state.fonts.mono}", ui-monospace, monospace`);

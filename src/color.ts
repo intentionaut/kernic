@@ -163,11 +163,17 @@ export function randomSeed(): string {
 
 /**
  * Opinionated gradient tokens derived from a system's own ramps, so they stay
- * coherent when hues shift. A third accent hue is synthesized ~85° away.
+ * coherent when hues shift. A third accent hue is synthesized away from the
+ * primary: bold pops for loud palettes, analogous whispers for quiet ones.
  */
 export function buildGradients(colors: { primary: Ramp; accent: Ramp; neutral: Ramp }): Record<string, string> {
   const p = hexToOklch(colors.primary["600"]);
-  const third = oklchToHex({ l: 0.66, c: Math.min(0.21, Math.max(0.14, p.c)), h: p.h + 85 });
+  const quiet = p.c < 0.11;
+  const third = oklchToHex({
+    l: quiet ? 0.6 : 0.66,
+    c: quiet ? Math.max(0.04, p.c) : Math.min(0.21, Math.max(0.14, p.c)),
+    h: p.h + (quiet ? 45 : 85),
+  });
   return {
     primary: `linear-gradient(120deg, ${colors.accent["400"]} 0%, ${colors.primary["500"]} 52%, ${colors.primary["800"]} 100%)`,
     mesh: [
