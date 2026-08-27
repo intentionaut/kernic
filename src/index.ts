@@ -18,10 +18,21 @@ program
   .description("Kern your whole app: a polished design system: palettes, Google Fonts, vibes. Export CSS vars, Tailwind v4, JSON tokens.")
   .version("0.1.0");
 
-// Default action = wizard
+// Default action = Studio (the visual editor)
 program.action(async () => {
-  await runWizard();
+  const { startStudio } = await import("./studio/server.ts");
+  p.intro("kernic — kern your whole app");
+  p.log.message("Opening Studio in your browser. Prefer the terminal? Run `kernic wizard`.");
+  await startStudio(undefined, { open: true });
 });
+
+program
+  .command("wizard")
+  .description("Walk through setup in the terminal (the original text UI)")
+  .argument("[name]", "name for the design system")
+  .action(async (name?: string) => {
+    await runWizard(name);
+  });
 
 program
   .command("create")
@@ -60,7 +71,7 @@ program
   .action(async () => {
     const systems = await listSystems();
     if (systems.length === 0) {
-      p.log.message("No design systems yet. Run `kernic` to start.");
+      p.log.message("No design systems yet. Run `kernic` to open Studio.");
       return;
     }
     p.log.message(
@@ -172,7 +183,7 @@ program
 
 program
   .command("studio")
-  .description("Open the visual Studio in your browser (local, free preview)")
+  .description("Open the visual Studio in your browser (the default experience, local and free)")
   .argument("[name]", "edit an existing system")
   .option("--no-open", "don't launch the browser automatically")
   .action(async (name: string | undefined, opts: { open: boolean }) => {
