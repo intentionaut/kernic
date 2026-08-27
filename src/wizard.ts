@@ -4,7 +4,6 @@ import {
   oklchToHex,
   hexToOklch,
   randomSeed,
-  buildGradients,
   type Harmony,
 } from "./color.ts";
 import { buildRamp, buildNeutral, type RampOptions } from "./color.ts";
@@ -13,7 +12,7 @@ import { renderPalette, renderRamp } from "./swatch.ts";
 import { normalizeName, saveSystem } from "./storage.ts";
 import type { DesignSystem } from "./types.ts";
 import { RADIUS_PRESETS, VIBES, type Vibe } from "./vibes.ts";
-import { semanticFromRamps } from "./build.ts";
+import { buildDesignSystem } from "./build.ts";
 
 function check<T>(value: T): Exclude<T, symbol> {
   if (p.isCancel(value)) {
@@ -23,15 +22,73 @@ function check<T>(value: T): Exclude<T, symbol> {
   return value as Exclude<T, symbol>;
 }
 
-interface PaletteState {
+export interface PaletteState {
   primarySeed: string;
   accentSeed: string;
   neutralTintHue?: number;
 }
 
-function shiftHue(hex: string, deg: number): string {
+export function shiftHue(hex: string, deg: number): string {
   const o = hexToOklch(hex);
   return oklchToHex({ ...o, h: o.h + deg });
+}
+
+export type NeutralTint = "match" | "warm" | "cool" | "pure";
+
+/**
+ * Pure seed derivation for the wizard's custom (non-vibe) palette flow.
+ * `hue: undefined` means "surprise me" — a random hue is drawn from `rng`,
+ * injectable so this is deterministic in tests.
+ */
+export function customSeedsFromInputs(
+  hue: number | undefined,
+  harmony: Harmony,
+  tint: NeutralTint,
+  rng: () => number = Math.random
+): PaletteState {
+  const resolvedHue = hue ?? Math.floor(rng() * 360);
+  const primarySeed = oklchToHex({ l: 0.6, c: 0.17, h: resolvedHue });
+  const accentSeed = harmonize(primarySeed, harmony);
+  const neutralTintHue =
+    tint === "match" ? hexToOklch(primarySeed).h : tint === "warm" ? 60 : tint === "cool" ? 230 : undefined;
+  return { primarySeed, accentSeed, neutralTintHue };
+}
+
+export type PaletteAction = { type: "reset" } | { type: "randomize" } | { type: "shift"; degrees: number };
+
+/**
+ * Pure reducer for the wizard's preview loop (reset / randomize / shift).
+ * "reset" and "randomize" are no-ops without a vibe (they're only offered
+ * in the UI when one is set — this guard just makes that explicit here too).
+ */
+export function reducePaletteState(
+  state: PaletteState,
+  vibe: Vibe | undefined,
+  action: PaletteAction,
+  rng: () => number = Math.random
+): PaletteState {
+  if (action.type === "reset") {
+    if (!vibe) return state;
+    return { primarySeed: vibe.primarySeed, accentSeed: vibe.accentSeed, neutralTintHue: vibe.neutralTintHue };
+  }
+  if (action.type === "randomize") {
+    if (!vibe) return state;
+    const base = hexToOklch(vibe.primarySeed);
+    const primarySeed = oklchToHex({
+      ...base,
+      h: base.h + (rng() * 60 - 30),
+      c: Math.max(0.08, base.c + (rng() * 0.06 - 0.03)),
+    });
+    const acc = hexToOklch(vibe.accentSeed);
+    const accentSeed = oklchToHex({ ...acc, h: acc.h + (rng() * 60 - 30) });
+    return { ...state, primarySeed, accentSeed };
+  }
+  // shift
+  return {
+    ...state,
+    primarySeed: shiftHue(state.primarySeed, action.degrees),
+    accentSeed: shiftHue(state.accentSeed, action.degrees),
+  };
 }
 
 function renderState(state: PaletteState, compress: RampOptions = {}): string {
@@ -61,9 +118,6 @@ async function pickPalette(vibe?: Vibe): Promise<PaletteState> {
         },
       })
     );
-    const hue = hueInput.trim() ? Number(hueInput) : Math.floor(Math.random() * 360);
-    state.primarySeed = oklchToHex({ l: 0.6, c: 0.17, h: hue });
-
     const harmony = check(
       await p.select({
         message: "Accent harmony",
@@ -75,7 +129,6 @@ async function pickPalette(vibe?: Vibe): Promise<PaletteState> {
         ],
       })
     ) as Harmony;
-    state.accentSeed = harmonize(state.primarySeed, harmony);
 
     const tint = check(
       await p.select({
@@ -87,9 +140,9 @@ async function pickPalette(vibe?: Vibe): Promise<PaletteState> {
           { value: "pure", label: "Pure gray", hint: "strictly neutral" },
         ],
       })
-    ) as string;
-    state.neutralTintHue =
-      tint === "match" ? hexToOklch(state.primarySeed).h : tint === "warm" ? 60 : tint === "cool" ? 230 : undefined;
+    ) as NeutralTint;
+
+    state = customSeedsFromInputs(hueInput.trim() ? Number(hueInput) : undefined, harmony, tint);
   }
 
   // Preview loop
@@ -109,14 +162,11 @@ async function pickPalette(vibe?: Vibe): Promise<PaletteState> {
 
     if (action === "keep") return state;
     if (action === "reset") {
-      state = { primarySeed: vibe!.primarySeed, accentSeed: vibe!.accentSeed, neutralTintHue: vibe!.neutralTintHue };
+      state = reducePaletteState(state, vibe, { type: "reset" });
       continue;
     }
     if (action === "randomize") {
-      const base = hexToOklch(vibe!.primarySeed);
-      state.primarySeed = oklchToHex({ ...base, h: base.h + (Math.random() * 60 - 30), c: Math.max(0.08, base.c + (Math.random() * 0.06 - 0.03)) });
-      const acc = hexToOklch(vibe!.accentSeed);
-      state.accentSeed = oklchToHex({ ...acc, h: acc.h + (Math.random() * 60 - 30) });
+      state = reducePaletteState(state, vibe, { type: "randomize" });
       continue;
     }
     // shift
@@ -130,8 +180,7 @@ async function pickPalette(vibe?: Vibe): Promise<PaletteState> {
         },
       })
     );
-    state.primarySeed = shiftHue(state.primarySeed, Number(deg));
-    state.accentSeed = shiftHue(state.accentSeed, Number(deg));
+    state = reducePaletteState(state, vibe, { type: "shift", degrees: Number(deg) });
   }
 }
 
@@ -253,18 +302,16 @@ export async function runWizard(nameArg?: string): Promise<DesignSystem> {
   }
   const normalizedName = normalizeName(name)!;
 
-  const ds: DesignSystem = {
-    schemaVersion: 1,
+  const ds: DesignSystem = buildDesignSystem({
     name: normalizedName,
-    vibe: vibe?.id ?? "custom",
-    createdAt: new Date().toISOString(),
+    vibeId: vibe?.id ?? "custom",
     colors,
-    semantic: semanticFromRamps(colors, darkDefault),
+    darkDefault,
     fonts: { heading, body, mono },
-    radius: { style: radiusStyle, ...radius },
-    typeScale: { ratio: Number(ratio), baseRem: 1 },
-    gradients: buildGradients(colors),
-  };
+    radiusStyle,
+    radius,
+    ratio: Number(ratio),
+  });
 
   p.note(
     [

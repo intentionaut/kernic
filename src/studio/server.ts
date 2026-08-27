@@ -1,4 +1,4 @@
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { createServer, type IncomingMessage, type ServerResponse, type Server } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -58,13 +58,13 @@ interface PaletteRequest {
   lRange?: [number, number];
 }
 
-function buildPalette(req: PaletteRequest) {
+export function buildPalette(req: PaletteRequest) {
   const base = req.baseSeed ? hexToOklch(req.baseSeed) : null;
   const primarySeed =
     req.primarySeed ??
     (base
       ? oklchToHex({ l: base.l, c: base.c, h: (((req.targetHue ?? base.h) % 360) + 360) % 360 })
-      : oklchToHex({ l: 0.6, c: 0.17, h: ((req.targetHue ?? 220) % 360) + 360 % 360 }));
+      : oklchToHex({ l: 0.6, c: 0.17, h: (((req.targetHue ?? 220) % 360) + 360) % 360 }));
   const accentSeed = req.accentSeed ?? harmonize(primarySeed, req.harmony ?? "analogous");
   const compress = { chromaScale: req.chromaScale, lRange: req.lRange };
   const colors = {
@@ -88,7 +88,7 @@ function buildPalette(req: PaletteRequest) {
 }
 
 /** Best-effort seed recovery when editing a system that has no stored seeds. */
-function deriveSeeds(ds: DesignSystem) {
+export function deriveSeeds(ds: DesignSystem) {
   const fromExt = (ds.extensions as any)?.seeds;
   if (fromExt?.primarySeed || typeof fromExt?.primaryHue === "number") return fromExt;
   const p = hexToOklch(ds.colors.primary["600"]);
@@ -101,42 +101,96 @@ function deriveSeeds(ds: DesignSystem) {
   };
 }
 
-function vibePublic(v: Vibe) {
+export function vibePublic(v: Vibe) {
   const { id, label, description, radius, typeRatio, fonts, darkModeDefault, primarySeed, accentSeed, neutralTintHue, chromaScale, lRange } = v;
   return { id, label, description, radius, typeRatio, fonts, darkModeDefault, primarySeed, accentSeed, neutralTintHue, chromaScale, lRange };
+}
+
+function lookPreview(l: (typeof LOOKS)[number]) {
+  const compress = { chromaScale: l.chromaScale ?? undefined, lRange: l.lRange ?? undefined };
+  const colors = {
+    primary: buildRamp(l.primarySeed, compress),
+    accent: buildRamp(l.accentSeed, compress),
+    neutral: buildNeutral(l.neutralTintHue ?? undefined),
+  };
+  return { ...l, colors, semantic: semanticFromRamps(colors, l.darkDefault), gradients: buildGradients(colors) };
+}
+
+export async function apiLooks(): Promise<{ looks: ReturnType<typeof lookPreview>[] }> {
+  return { looks: LOOKS.map(lookPreview) };
+}
+
+export function apiMeta() {
+  return {
+    version: "0.1.0",
+    vibes: VIBES.map(vibePublic),
+    copy: PREVIEW_COPY,
+    radii: RADIUS_PRESETS,
+    ratios: [1.125, 1.2, 1.25, 1.333, 1.414, 1.618],
+    spaces: [0.5, 1, 1.5, 2, 3, 4, 6, 8, 12, 16],
+  };
+}
+
+export async function apiFonts(
+  query: string,
+  deps: { getFontCatalog: typeof getFontCatalog; searchFonts: typeof searchFonts } = { getFontCatalog, searchFonts }
+): Promise<{ results: Awaited<ReturnType<typeof searchFonts>>; live: boolean }> {
+  const { fonts, live } = await deps.getFontCatalog();
+  return { results: await deps.searchFonts(fonts, query, 30), live };
+}
+
+export async function apiLoad(
+  name: string,
+  deps: { loadSystem: typeof loadSystem } = { loadSystem }
+): Promise<{ status: 200 | 404; body: unknown }> {
+  const ds = await deps.loadSystem(name);
+  if (!ds) return { status: 404, body: { error: `Not found: ${name}` } };
+  return { status: 200, body: { system: ds, seeds: deriveSeeds(ds) } };
+}
+
+export async function apiSave(
+  body: unknown,
+  deps: { saveSystem: typeof saveSystem } = { saveSystem }
+): Promise<{ status: 200 | 400; body: unknown }> {
+  const b = (body ?? {}) as DesignSystem & { extensions?: Record<string, unknown> };
+  const name = normalizeName(b.name ?? "");
+  if (!name) return { status: 400, body: { error: "Invalid system name" } };
+  if (!b.colors?.primary || !b.fonts) return { status: 400, body: { error: "Malformed system" } };
+  const ds: DesignSystem = {
+    schemaVersion: 1,
+    name,
+    vibe: b.vibe ?? "custom",
+    createdAt: new Date().toISOString(),
+    colors: b.colors,
+    semantic: b.semantic,
+    fonts: b.fonts,
+    radius: b.radius,
+    typeScale: b.typeScale,
+    gradients: typeof b.gradients === "object" && b.gradients !== null ? b.gradients : undefined,
+    extensions: b.extensions,
+  };
+  await deps.saveSystem(ds);
+  return { status: 200, body: { ok: true, name } };
+}
+
+export function apiRandom(deps: { randomSeed: typeof randomSeed } = { randomSeed }): { seed: string } {
+  return { seed: deps.randomSeed() };
 }
 
 async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
   const path = url.pathname;
 
   if (req.method === "GET" && path === "/api/looks") {
-    const looks = LOOKS.map((l) => {
-      const compress = { chromaScale: l.chromaScale ?? undefined, lRange: l.lRange ?? undefined };
-      const colors = {
-        primary: buildRamp(l.primarySeed, compress),
-        accent: buildRamp(l.accentSeed, compress),
-        neutral: buildNeutral(l.neutralTintHue ?? undefined),
-      };
-      return { ...l, colors, semantic: semanticFromRamps(colors, l.darkDefault), gradients: buildGradients(colors) };
-    });
-    return json(res, 200, { looks }), true;
+    return json(res, 200, await apiLooks()), true;
   }
 
   if (req.method === "GET" && path === "/api/meta") {
-    return json(res, 200, {
-      version: "0.1.0",
-      vibes: VIBES.map(vibePublic),
-      copy: PREVIEW_COPY,
-      radii: RADIUS_PRESETS,
-      ratios: [1.125, 1.2, 1.25, 1.333, 1.414, 1.618],
-      spaces: [0.5, 1, 1.5, 2, 3, 4, 6, 8, 12, 16],
-    }), true;
+    return json(res, 200, apiMeta()), true;
   }
 
   if (req.method === "GET" && path.startsWith("/api/fonts")) {
     const q = url.searchParams.get("q") ?? "";
-    const { fonts, live } = await getFontCatalog();
-    return json(res, 200, { results: await searchFonts(fonts, q, 30), live }), true;
+    return json(res, 200, await apiFonts(q)), true;
   }
 
   if (req.method === "POST" && path === "/api/palette") {
@@ -145,35 +199,17 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL): P
 
   if (req.method === "GET" && path.startsWith("/api/load/")) {
     const name = decodeURIComponent(path.slice("/api/load/".length));
-    const ds = await loadSystem(name);
-    if (!ds) return json(res, 404, { error: `Not found: ${name}` }), true;
-    return json(res, 200, { system: ds, seeds: deriveSeeds(ds) }), true;
+    const { status, body } = await apiLoad(name);
+    return json(res, status, body), true;
   }
 
   if (req.method === "POST" && path === "/api/save") {
-    const body = (await readBody(req)) as DesignSystem & { extensions?: Record<string, unknown> };
-    const name = normalizeName(body.name ?? "");
-    if (!name) return json(res, 400, { error: "Invalid system name" }), true;
-    if (!body.colors?.primary || !body.fonts) return json(res, 400, { error: "Malformed system" }), true;
-    const ds: DesignSystem = {
-      schemaVersion: 1,
-      name,
-      vibe: body.vibe ?? "custom",
-      createdAt: new Date().toISOString(),
-      colors: body.colors,
-      semantic: body.semantic,
-      fonts: body.fonts,
-      radius: body.radius,
-      typeScale: body.typeScale,
-      gradients: typeof body.gradients === "object" && body.gradients !== null ? body.gradients : undefined,
-      extensions: body.extensions,
-    };
-    await saveSystem(ds);
-    return json(res, 200, { ok: true, name }), true;
+    const { status, body } = await apiSave(await readBody(req));
+    return json(res, status, body), true;
   }
 
   if (req.method === "GET" && path === "/api/random") {
-    return json(res, 200, { seed: randomSeed() }), true;
+    return json(res, 200, apiRandom()), true;
   }
 
   return false;
@@ -195,7 +231,7 @@ async function serveStatic(res: ServerResponse, url: URL): Promise<void> {
   }
 }
 
-function openBrowser(url: string): void {
+export function openBrowser(url: string): void {
   const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "cmd" : "xdg-open";
   const args = process.platform === "win32" ? ["/c", "start", "", url] : [url];
   try {
@@ -203,8 +239,13 @@ function openBrowser(url: string): void {
   } catch {}
 }
 
-export async function startStudio(name?: string, opts: { open?: boolean } = {}): Promise<void> {
-  const server = createServer(async (req, res) => {
+/**
+ * Creates (but does not start listening on) the Studio HTTP server. Split
+ * out from startStudio so tests can listen on an ephemeral port and hit it
+ * with real requests, without also triggering openBrowser's real OS spawn.
+ */
+export function createStudioServer(): Server {
+  return createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://127.0.0.1");
     try {
       if (url.pathname.startsWith("/api/")) {
@@ -217,6 +258,10 @@ export async function startStudio(name?: string, opts: { open?: boolean } = {}):
       json(res, 500, { error: err?.message ?? "Server error" });
     }
   });
+}
+
+export async function startStudio(name?: string, opts: { open?: boolean } = {}): Promise<void> {
+  const server = createStudioServer();
 
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const addr = server.address();

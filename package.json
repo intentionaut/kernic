@@ -27,7 +27,8 @@
     "dev": "tsx src/index.ts",
     "build": "tsc",
     "prepack": "npm run build",
-    "test": "npm run build && node dist/index.js list"
+    "test": "vitest run --coverage",
+    "test:watch": "vitest"
   },
   "engines": {
     "node": ">=20"
@@ -52,7 +53,9 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "tsx": "^4.19.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.11"
   }
 }

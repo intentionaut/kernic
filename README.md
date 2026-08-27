@@ -142,7 +142,7 @@ Built by [Saielle DaSilva](https://intentionaut.com/projects/) — more tools an
 
 ## Contributing
 
-PRs welcome — especially new vibes, export targets (SCSS, Figma tokens), and W3C design-tokens output. The cloud Studio lives in a separate private repo; this codebase stays 100% MIT.
+PRs welcome — especially new vibes, export targets (SCSS, Figma tokens), and W3C design-tokens output. The cloud Studio lives in a separate private repo; this codebase stays 100% MIT. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the testing expectations.
 
 ## License
 

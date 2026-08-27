@@ -66,7 +66,7 @@ async function mustLoad(name?: unknown): Promise<DesignSystem> {
   return ds;
 }
 
-async function runTool(name: string, args: Record<string, any>): Promise<string> {
+export async function runTool(name: string, args: Record<string, any>): Promise<string> {
   switch (name) {
     case "list_systems": {
       const systems = await listSystems();

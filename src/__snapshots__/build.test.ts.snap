@@ -1,0 +1,753 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildFromVibe > produces a stable snapshot for the 'corporate' vibe 1`] = `
+{
+  "colors": {
+    "accent": {
+      "100": "#d8efff",
+      "200": "#aedfff",
+      "300": "#7cc8f7",
+      "400": "#45ace7",
+      "50": "#eff8ff",
+      "500": "#008dc9",
+      "600": "#0071a2",
+      "700": "#00567d",
+      "800": "#003f5d",
+      "900": "#002a40",
+      "950": "#001624",
+    },
+    "neutral": {
+      "100": "#e3edf2",
+      "200": "#ced9df",
+      "300": "#b3c0c7",
+      "400": "#96a4ac",
+      "50": "#f0f8fd",
+      "500": "#76868e",
+      "600": "#5d6c73",
+      "700": "#455259",
+      "800": "#323c42",
+      "900": "#1f282c",
+      "950": "#0e1518",
+    },
+    "primary": {
+      "100": "#e1ecff",
+      "200": "#c3d8ff",
+      "300": "#9bbeff",
+      "400": "#6e9fff",
+      "50": "#f3f7ff",
+      "500": "#3a79ff",
+      "600": "#205cde",
+      "700": "#1344b1",
+      "800": "#0c3185",
+      "900": "#041f5f",
+      "950": "#000e3b",
+    },
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "fonts": {
+    "body": "Inter",
+    "heading": "Inter",
+    "mono": "IBM Plex Mono",
+  },
+  "gradients": {
+    "mesh": "radial-gradient(60% 85% at 12% 8%, #7cc8f755 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #e74ea963 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #3a79ff40 0%, transparent 62%), linear-gradient(180deg, #1f282c, #0e1518)",
+    "primary": "linear-gradient(120deg, #45ace7 0%, #3a79ff 52%, #0c3185 100%)",
+    "text": "linear-gradient(92deg, #008dc9 0%, #6e9fff 55%, #e74ea9 100%)",
+  },
+  "name": "test-corporate",
+  "radius": {
+    "lg": "0.5rem",
+    "md": "0.375rem",
+    "sm": "0.25rem",
+    "style": "soft",
+    "xl": "0.75rem",
+  },
+  "schemaVersion": 1,
+  "semantic": {
+    "background": {
+      "dark": "#0e1518",
+      "light": "#f0f8fd",
+    },
+    "border": {
+      "dark": "#323c42",
+      "light": "#ced9df",
+    },
+    "mutedText": {
+      "dark": "#96a4ac",
+      "light": "#5d6c73",
+    },
+    "ring": "#205cde",
+    "surface": {
+      "dark": "#1f282c",
+      "light": "#e3edf2",
+    },
+    "text": {
+      "dark": "#f0f8fd",
+      "light": "#0e1518",
+    },
+  },
+  "typeScale": {
+    "baseRem": 1,
+    "ratio": 1.25,
+  },
+  "vibe": "corporate",
+}
+`;
+
+exports[`buildFromVibe > produces a stable snapshot for the 'earthy' vibe 1`] = `
+{
+  "colors": {
+    "accent": {
+      "100": "#e3efe0",
+      "200": "#cdddc9",
+      "300": "#b0c5ab",
+      "400": "#90aa8a",
+      "50": "#f1faef",
+      "500": "#6f8d68",
+      "600": "#567250",
+      "700": "#40573b",
+      "800": "#2f402a",
+      "900": "#1d2b1a",
+      "950": "#0d170b",
+    },
+    "neutral": {
+      "100": "#f2e9e3",
+      "200": "#dfd5ce",
+      "300": "#c6bbb3",
+      "400": "#ab9f95",
+      "50": "#fcf5f0",
+      "500": "#8e8076",
+      "600": "#73665d",
+      "700": "#584d45",
+      "800": "#413932",
+      "900": "#2c251f",
+      "950": "#18130e",
+    },
+    "primary": {
+      "100": "#ffe5d7",
+      "200": "#fbccb2",
+      "300": "#eaaf8d",
+      "400": "#d68e63",
+      "50": "#fff4ef",
+      "500": "#bc6b38",
+      "600": "#9e511d",
+      "700": "#7b3c0f",
+      "800": "#5c2b09",
+      "900": "#3f1b02",
+      "950": "#250b00",
+    },
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "fonts": {
+    "body": "Source Sans 3",
+    "heading": "Fraunces",
+    "mono": "Courier Prime",
+  },
+  "gradients": {
+    "mesh": "radial-gradient(60% 85% at 12% 8%, #b0c5ab55 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #6aa54863 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #bc6b3840 0%, transparent 62%), linear-gradient(180deg, #2c251f, #18130e)",
+    "primary": "linear-gradient(120deg, #90aa8a 0%, #bc6b38 52%, #5c2b09 100%)",
+    "text": "linear-gradient(92deg, #6f8d68 0%, #d68e63 55%, #6aa548 100%)",
+  },
+  "name": "test-earthy",
+  "radius": {
+    "lg": "0.5rem",
+    "md": "0.375rem",
+    "sm": "0.25rem",
+    "style": "soft",
+    "xl": "0.75rem",
+  },
+  "schemaVersion": 1,
+  "semantic": {
+    "background": {
+      "dark": "#18130e",
+      "light": "#fcf5f0",
+    },
+    "border": {
+      "dark": "#413932",
+      "light": "#dfd5ce",
+    },
+    "mutedText": {
+      "dark": "#ab9f95",
+      "light": "#73665d",
+    },
+    "ring": "#9e511d",
+    "surface": {
+      "dark": "#2c251f",
+      "light": "#f2e9e3",
+    },
+    "text": {
+      "dark": "#fcf5f0",
+      "light": "#18130e",
+    },
+  },
+  "typeScale": {
+    "baseRem": 1,
+    "ratio": 1.25,
+  },
+  "vibe": "earthy",
+}
+`;
+
+exports[`buildFromVibe > produces a stable snapshot for the 'fun' vibe 1`] = `
+{
+  "colors": {
+    "accent": {
+      "100": "#bdedff",
+      "200": "#9be5ff",
+      "300": "#65d9ff",
+      "400": "#00caf9",
+      "50": "#cff2ff",
+      "500": "#00b5df",
+      "600": "#00a2c9",
+      "700": "#0090b3",
+      "800": "#00809f",
+      "900": "#00718d",
+      "950": "#176177",
+    },
+    "neutral": {
+      "100": "#eee9f1",
+      "200": "#dad5df",
+      "300": "#c1bbc6",
+      "400": "#a59eab",
+      "50": "#f9f5fc",
+      "500": "#87808d",
+      "600": "#6d6672",
+      "700": "#534d58",
+      "800": "#3d3841",
+      "900": "#29252c",
+      "950": "#161218",
+    },
+    "primary": {
+      "100": "#ffd8e4",
+      "200": "#ffc6d9",
+      "300": "#ffacc9",
+      "400": "#ff8db8",
+      "50": "#ffe2eb",
+      "500": "#ff63a5",
+      "600": "#ff2695",
+      "700": "#e80084",
+      "800": "#ce0f76",
+      "900": "#af2667",
+      "950": "#902f59",
+    },
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "fonts": {
+    "body": "Fredoka",
+    "heading": "Baloo 2",
+    "mono": "Nunito",
+  },
+  "gradients": {
+    "mesh": "radial-gradient(60% 85% at 12% 8%, #65d9ff55 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #bb880063 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #ff63a540 0%, transparent 62%), linear-gradient(180deg, #29252c, #161218)",
+    "primary": "linear-gradient(120deg, #00caf9 0%, #ff63a5 52%, #ce0f76 100%)",
+    "text": "linear-gradient(92deg, #00b5df 0%, #ff8db8 55%, #bb8800 100%)",
+  },
+  "name": "test-fun",
+  "radius": {
+    "lg": "1.5rem",
+    "md": "9999px",
+    "sm": "9999px",
+    "style": "pill",
+    "xl": "2rem",
+  },
+  "schemaVersion": 1,
+  "semantic": {
+    "background": {
+      "dark": "#161218",
+      "light": "#f9f5fc",
+    },
+    "border": {
+      "dark": "#3d3841",
+      "light": "#dad5df",
+    },
+    "mutedText": {
+      "dark": "#a59eab",
+      "light": "#6d6672",
+    },
+    "ring": "#ff2695",
+    "surface": {
+      "dark": "#29252c",
+      "light": "#eee9f1",
+    },
+    "text": {
+      "dark": "#f9f5fc",
+      "light": "#161218",
+    },
+  },
+  "typeScale": {
+    "baseRem": 1,
+    "ratio": 1.333,
+  },
+  "vibe": "fun",
+}
+`;
+
+exports[`buildFromVibe > produces a stable snapshot for the 'minimal' vibe 1`] = `
+{
+  "colors": {
+    "accent": {
+      "100": "#ebebee",
+      "200": "#d7d7dc",
+      "300": "#bdbdc3",
+      "400": "#a1a1a8",
+      "50": "#f6f6f9",
+      "500": "#82828b",
+      "600": "#686870",
+      "700": "#4f4f56",
+      "800": "#3a3a3f",
+      "900": "#26262a",
+      "950": "#131316",
+    },
+    "neutral": {
+      "100": "#ebebeb",
+      "200": "#d7d7d7",
+      "300": "#bebebe",
+      "400": "#a1a1a1",
+      "50": "#f7f7f7",
+      "500": "#838383",
+      "600": "#696969",
+      "700": "#505050",
+      "800": "#3a3a3a",
+      "900": "#262626",
+      "950": "#141414",
+    },
+    "primary": {
+      "100": "#ebebec",
+      "200": "#d7d7d9",
+      "300": "#bdbdc0",
+      "400": "#a1a1a4",
+      "50": "#f6f7f8",
+      "500": "#838387",
+      "600": "#68686c",
+      "700": "#4f4f52",
+      "800": "#3a3a3d",
+      "900": "#262628",
+      "950": "#141415",
+    },
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "fonts": {
+    "body": "Inter",
+    "heading": "Inter",
+    "mono": "JetBrains Mono",
+  },
+  "gradients": {
+    "mesh": "radial-gradient(60% 85% at 12% 8%, #bdbdc355 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #8f788b63 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #83838740 0%, transparent 62%), linear-gradient(180deg, #262626, #141414)",
+    "primary": "linear-gradient(120deg, #a1a1a8 0%, #838387 52%, #3a3a3d 100%)",
+    "text": "linear-gradient(92deg, #82828b 0%, #a1a1a4 55%, #8f788b 100%)",
+  },
+  "name": "test-minimal",
+  "radius": {
+    "lg": "0.5rem",
+    "md": "0.375rem",
+    "sm": "0.25rem",
+    "style": "soft",
+    "xl": "0.75rem",
+  },
+  "schemaVersion": 1,
+  "semantic": {
+    "background": {
+      "dark": "#141414",
+      "light": "#f7f7f7",
+    },
+    "border": {
+      "dark": "#3a3a3a",
+      "light": "#d7d7d7",
+    },
+    "mutedText": {
+      "dark": "#a1a1a1",
+      "light": "#696969",
+    },
+    "ring": "#68686c",
+    "surface": {
+      "dark": "#262626",
+      "light": "#ebebeb",
+    },
+    "text": {
+      "dark": "#f7f7f7",
+      "light": "#141414",
+    },
+  },
+  "typeScale": {
+    "baseRem": 1,
+    "ratio": 1.125,
+  },
+  "vibe": "minimal",
+}
+`;
+
+exports[`buildFromVibe > produces a stable snapshot for the 'neon' vibe 1`] = `
+{
+  "colors": {
+    "accent": {
+      "100": "#cdf3ff",
+      "200": "#9ee4fa",
+      "300": "#6dcde9",
+      "400": "#17b3d7",
+      "50": "#ebfaff",
+      "500": "#0092b0",
+      "600": "#00758e",
+      "700": "#00596d",
+      "800": "#004251",
+      "900": "#002c37",
+      "950": "#00171e",
+    },
+    "neutral": {
+      "100": "#e5ecf3",
+      "200": "#d1d8e1",
+      "300": "#b6bfc8",
+      "400": "#99a3ae",
+      "50": "#f2f7fe",
+      "500": "#7a8590",
+      "600": "#606a75",
+      "700": "#48515a",
+      "800": "#343b43",
+      "900": "#21272e",
+      "950": "#101419",
+    },
+    "primary": {
+      "100": "#e6eaff",
+      "200": "#ced4ff",
+      "300": "#aeb7ff",
+      "400": "#8d95ff",
+      "50": "#f5f6ff",
+      "500": "#6c6bff",
+      "600": "#5549e6",
+      "700": "#4034b7",
+      "800": "#2e258a",
+      "900": "#1e1563",
+      "950": "#0e063e",
+    },
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "fonts": {
+    "body": "Inter",
+    "heading": "Inter",
+    "mono": "JetBrains Mono",
+  },
+  "gradients": {
+    "mesh": "radial-gradient(60% 85% at 12% 8%, #6dcde955 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #f3488563 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #6c6bff40 0%, transparent 62%), linear-gradient(180deg, #21272e, #101419)",
+    "primary": "linear-gradient(120deg, #17b3d7 0%, #6c6bff 52%, #2e258a 100%)",
+    "text": "linear-gradient(92deg, #0092b0 0%, #8d95ff 55%, #f34885 100%)",
+  },
+  "name": "test-neon",
+  "radius": {
+    "lg": "0.5rem",
+    "md": "0.375rem",
+    "sm": "0.25rem",
+    "style": "soft",
+    "xl": "0.75rem",
+  },
+  "schemaVersion": 1,
+  "semantic": {
+    "background": {
+      "dark": "#101419",
+      "light": "#f2f7fe",
+    },
+    "border": {
+      "dark": "#343b43",
+      "light": "#d1d8e1",
+    },
+    "mutedText": {
+      "dark": "#99a3ae",
+      "light": "#606a75",
+    },
+    "ring": "#6c6bff",
+    "surface": {
+      "dark": "#21272e",
+      "light": "#e5ecf3",
+    },
+    "text": {
+      "dark": "#f2f7fe",
+      "light": "#101419",
+    },
+  },
+  "typeScale": {
+    "baseRem": 1,
+    "ratio": 1.25,
+  },
+  "vibe": "neon",
+}
+`;
+
+exports[`buildFromVibe > produces a stable snapshot for the 'retro' vibe 1`] = `
+{
+  "colors": {
+    "accent": {
+      "100": "#fae8d1",
+      "200": "#ebd4b4",
+      "300": "#d7b890",
+      "400": "#c09a67",
+      "50": "#fff5e8",
+      "500": "#a47a3d",
+      "600": "#886024",
+      "700": "#694915",
+      "800": "#4e350e",
+      "900": "#352204",
+      "950": "#1e1100",
+    },
+    "neutral": {
+      "100": "#f1eae3",
+      "200": "#ded6ce",
+      "300": "#c5bcb2",
+      "400": "#aaa095",
+      "50": "#fcf6ef",
+      "500": "#8c8175",
+      "600": "#71675c",
+      "700": "#574e44",
+      "800": "#403931",
+      "900": "#2b251f",
+      "950": "#18130e",
+    },
+    "primary": {
+      "100": "#ffe5d8",
+      "200": "#ffcab0",
+      "300": "#f3ab85",
+      "400": "#e08858",
+      "50": "#fff4ef",
+      "500": "#c76325",
+      "600": "#a74a00",
+      "700": "#803700",
+      "800": "#602700",
+      "900": "#421800",
+      "950": "#260b00",
+    },
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "fonts": {
+    "body": "Karla",
+    "heading": "DM Serif Display",
+    "mono": "Space Mono",
+  },
+  "gradients": {
+    "mesh": "radial-gradient(60% 85% at 12% 8%, #d7b89055 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #6ea44463 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #c7632540 0%, transparent 62%), linear-gradient(180deg, #2b251f, #18130e)",
+    "primary": "linear-gradient(120deg, #c09a67 0%, #c76325 52%, #602700 100%)",
+    "text": "linear-gradient(92deg, #a47a3d 0%, #e08858 55%, #6ea444 100%)",
+  },
+  "name": "test-retro",
+  "radius": {
+    "lg": "0.5rem",
+    "md": "0.375rem",
+    "sm": "0.25rem",
+    "style": "soft",
+    "xl": "0.75rem",
+  },
+  "schemaVersion": 1,
+  "semantic": {
+    "background": {
+      "dark": "#18130e",
+      "light": "#fcf6ef",
+    },
+    "border": {
+      "dark": "#403931",
+      "light": "#ded6ce",
+    },
+    "mutedText": {
+      "dark": "#aaa095",
+      "light": "#71675c",
+    },
+    "ring": "#a74a00",
+    "surface": {
+      "dark": "#2b251f",
+      "light": "#f1eae3",
+    },
+    "text": {
+      "dark": "#fcf6ef",
+      "light": "#18130e",
+    },
+  },
+  "typeScale": {
+    "baseRem": 1,
+    "ratio": 1.333,
+  },
+  "vibe": "retro",
+}
+`;
+
+exports[`buildFromVibe > produces a stable snapshot for the 'soft-pastel' vibe 1`] = `
+{
+  "colors": {
+    "accent": {
+      "100": "#d4f0ff",
+      "200": "#b5dff4",
+      "300": "#90c7e2",
+      "400": "#65acce",
+      "50": "#edf9ff",
+      "500": "#358eb4",
+      "600": "#147297",
+      "700": "#035875",
+      "800": "#024057",
+      "900": "#002b3c",
+      "950": "#001722",
+    },
+    "neutral": {
+      "100": "#ece9f2",
+      "200": "#d9d5e0",
+      "300": "#bfbbc7",
+      "400": "#a39fac",
+      "50": "#f8f5fd",
+      "500": "#85808f",
+      "600": "#6b6674",
+      "700": "#514e59",
+      "800": "#3c3942",
+      "900": "#27252d",
+      "950": "#151319",
+    },
+    "primary": {
+      "100": "#ece8ff",
+      "200": "#d9d1fb",
+      "300": "#c0b5ea",
+      "400": "#a496d8",
+      "50": "#f7f5ff",
+      "500": "#8775bf",
+      "600": "#6c5ba1",
+      "700": "#53447e",
+      "800": "#3d325e",
+      "900": "#282041",
+      "950": "#150f26",
+    },
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "fonts": {
+    "body": "Nunito Sans",
+    "heading": "Quicksand",
+    "mono": "Fira Code",
+  },
+  "gradients": {
+    "mesh": "radial-gradient(60% 85% at 12% 8%, #90c7e255 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #aa659663 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #8775bf40 0%, transparent 62%), linear-gradient(180deg, #27252d, #151319)",
+    "primary": "linear-gradient(120deg, #65acce 0%, #8775bf 52%, #3d325e 100%)",
+    "text": "linear-gradient(92deg, #358eb4 0%, #a496d8 55%, #aa6596 100%)",
+  },
+  "name": "test-soft-pastel",
+  "radius": {
+    "lg": "1rem",
+    "md": "0.625rem",
+    "sm": "0.375rem",
+    "style": "round",
+    "xl": "1.5rem",
+  },
+  "schemaVersion": 1,
+  "semantic": {
+    "background": {
+      "dark": "#151319",
+      "light": "#f8f5fd",
+    },
+    "border": {
+      "dark": "#3c3942",
+      "light": "#d9d5e0",
+    },
+    "mutedText": {
+      "dark": "#a39fac",
+      "light": "#6b6674",
+    },
+    "ring": "#6c5ba1",
+    "surface": {
+      "dark": "#27252d",
+      "light": "#ece9f2",
+    },
+    "text": {
+      "dark": "#f8f5fd",
+      "light": "#151319",
+    },
+  },
+  "typeScale": {
+    "baseRem": 1,
+    "ratio": 1.2,
+  },
+  "vibe": "soft-pastel",
+}
+`;
+
+exports[`buildFromVibe > produces a stable snapshot for the 'tech' vibe 1`] = `
+{
+  "colors": {
+    "accent": {
+      "100": "#ebe8ff",
+      "200": "#d8d0ff",
+      "300": "#c0b0ff",
+      "400": "#a68aff",
+      "50": "#f7f5ff",
+      "500": "#8c5df8",
+      "600": "#7241d5",
+      "700": "#582da9",
+      "800": "#41207f",
+      "900": "#2b115a",
+      "950": "#180438",
+    },
+    "neutral": {
+      "100": "#e2eeee",
+      "200": "#cddadb",
+      "300": "#b2c1c2",
+      "400": "#94a5a6",
+      "50": "#eff9f9",
+      "500": "#748788",
+      "600": "#5b6d6e",
+      "700": "#445354",
+      "800": "#303d3e",
+      "900": "#1e2929",
+      "950": "#0d1616",
+    },
+    "primary": {
+      "100": "#c5f5ff",
+      "200": "#a1e4f2",
+      "300": "#72cedf",
+      "400": "#29b4cb",
+      "50": "#e8fbff",
+      "500": "#0094a8",
+      "600": "#007687",
+      "700": "#005a67",
+      "800": "#00434d",
+      "900": "#002c34",
+      "950": "#00181c",
+    },
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "fonts": {
+    "body": "Inter",
+    "heading": "Space Grotesk",
+    "mono": "JetBrains Mono",
+  },
+  "gradients": {
+    "mesh": "radial-gradient(60% 85% at 12% 8%, #c0b0ff55 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #5d82b663 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #0094a840 0%, transparent 62%), linear-gradient(180deg, #1e2929, #0d1616)",
+    "primary": "linear-gradient(120deg, #a68aff 0%, #0094a8 52%, #00434d 100%)",
+    "text": "linear-gradient(92deg, #8c5df8 0%, #29b4cb 55%, #5d82b6 100%)",
+  },
+  "name": "test-tech",
+  "radius": {
+    "lg": "0.125rem",
+    "md": "0rem",
+    "sm": "0rem",
+    "style": "sharp",
+    "xl": "0.25rem",
+  },
+  "schemaVersion": 1,
+  "semantic": {
+    "background": {
+      "dark": "#0d1616",
+      "light": "#eff9f9",
+    },
+    "border": {
+      "dark": "#303d3e",
+      "light": "#cddadb",
+    },
+    "mutedText": {
+      "dark": "#94a5a6",
+      "light": "#5b6d6e",
+    },
+    "ring": "#0094a8",
+    "surface": {
+      "dark": "#1e2929",
+      "light": "#e2eeee",
+    },
+    "text": {
+      "dark": "#eff9f9",
+      "light": "#0d1616",
+    },
+  },
+  "typeScale": {
+    "baseRem": 1,
+    "ratio": 1.25,
+  },
+  "vibe": "tech",
+}
+`;

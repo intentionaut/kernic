@@ -5,13 +5,23 @@ import type { DesignSystem } from "./types.ts";
 
 let migrated = false;
 
+/**
+ * Resolves the user's home directory, honoring KERNIC_HOME_DIR when set.
+ * This exists for test isolation (point it at a temp dir so tests never
+ * touch a real ~/.config/kernic), and doubles as a legitimate escape hatch
+ * for running kernic somewhere $HOME isn't writable (e.g. some containers).
+ */
+function homeDir(): string {
+  return process.env.KERNIC_HOME_DIR ?? homedir();
+}
+
 /** One-time migration chain: ~/.config/dsforge and ~/.config/umbrik → ~/.config/kernic */
 async function migrateLegacy(): Promise<void> {
   if (migrated) return;
   migrated = true;
-  const dir = join(homedir(), ".config", "kernic");
+  const dir = join(homeDir(), ".config", "kernic");
   for (const legacyName of ["dsforge", "umbrik"]) {
-    const legacy = join(homedir(), ".config", legacyName);
+    const legacy = join(homeDir(), ".config", legacyName);
     try {
       await access(legacy);
     } catch {
@@ -32,7 +42,7 @@ async function migrateLegacy(): Promise<void> {
 
 export async function configDir(): Promise<string> {
   await migrateLegacy();
-  const dir = join(homedir(), ".config", "kernic");
+  const dir = join(homeDir(), ".config", "kernic");
   await mkdir(dir, { recursive: true });
   return dir;
 }

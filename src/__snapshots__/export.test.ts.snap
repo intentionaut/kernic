@@ -1,0 +1,183 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`exportCss > matches a stable snapshot for the vibe fixture 1`] = `
+"/* kernic — "acme-tech" (vibe: tech) */
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+:root {
+  --color-primary-50: #e8fbff;
+  --color-primary-100: #c5f5ff;
+  --color-primary-200: #a1e4f2;
+  --color-primary-300: #72cedf;
+  --color-primary-400: #29b4cb;
+  --color-primary-500: #0094a8;
+  --color-primary-600: #007687;
+  --color-primary-700: #005a67;
+  --color-primary-800: #00434d;
+  --color-primary-900: #002c34;
+  --color-primary-950: #00181c;
+  --color-accent-50: #f7f5ff;
+  --color-accent-100: #ebe8ff;
+  --color-accent-200: #d8d0ff;
+  --color-accent-300: #c0b0ff;
+  --color-accent-400: #a68aff;
+  --color-accent-500: #8c5df8;
+  --color-accent-600: #7241d5;
+  --color-accent-700: #582da9;
+  --color-accent-800: #41207f;
+  --color-accent-900: #2b115a;
+  --color-accent-950: #180438;
+  --color-neutral-50: #eff9f9;
+  --color-neutral-100: #e2eeee;
+  --color-neutral-200: #cddadb;
+  --color-neutral-300: #b2c1c2;
+  --color-neutral-400: #94a5a6;
+  --color-neutral-500: #748788;
+  --color-neutral-600: #5b6d6e;
+  --color-neutral-700: #445354;
+  --color-neutral-800: #303d3e;
+  --color-neutral-900: #1e2929;
+  --color-neutral-950: #0d1616;
+
+  /* Semantic (light) */
+  --background: #eff9f9;
+  --surface: #e2eeee;
+  --text: #0d1616;
+  --muted-text: #5b6d6e;
+  --border: #cddadb;
+  --ring: #0094a8;
+
+  /* Semantic (dark) — activate via .dark class or media query below */
+  --dark-background: #0d1616;
+  --dark-surface: #1e2929;
+  --dark-text: #eff9f9;
+  --dark-muted-text: #94a5a6;
+  --dark-border: #303d3e;
+  --dark-ring: #0094a8;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(120deg, #a68aff 0%, #0094a8 52%, #00434d 100%);
+  --gradient-mesh: radial-gradient(60% 85% at 12% 8%, #c0b0ff55 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #5d82b663 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #0094a840 0%, transparent 62%), linear-gradient(180deg, #1e2929, #0d1616);
+  --gradient-text: linear-gradient(92deg, #8c5df8 0%, #29b4cb 55%, #5d82b6 100%);
+
+  /* Typography */
+  --text-xs: 0.800rem;
+  --text-sm: 0.894rem;
+  --text-base: 1.000rem;
+  --text-lg: 1.250rem;
+  --text-xl: 1.563rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 3.052rem;
+  --text-4xl: 4.768rem;
+  --text-5xl: 7.451rem;
+  --font-heading: "Space Grotesk", ui-serif, Georgia, serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Radius & spacing */
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0.125rem;
+  --radius-xl: 0.25rem;
+  --space-0-5: 0.5rem;
+  --space-1: 1rem;
+  --space-1-5: 1.5rem;
+  --space-2: 2rem;
+  --space-3: 3rem;
+  --space-4: 4rem;
+  --space-6: 6rem;
+  --space-8: 8rem;
+  --space-12: 12rem;
+  --space-16: 16rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: var(--dark-background);
+    --surface: var(--dark-surface);
+    --text: var(--dark-text);
+    --muted-text: var(--dark-muted-text);
+    --border: var(--dark-border);
+  }
+}
+"
+`;
+
+exports[`exportFonts > matches a stable snapshot for the vibe fixture 1`] = `
+"<!-- kernic — "acme-tech" Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+/* or in CSS: */
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+"
+`;
+
+exports[`exportTailwind > matches a stable snapshot for the vibe fixture 1`] = `
+"/* kernic — "acme-tech" Tailwind v4 theme (vibe: tech) */
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+@theme {
+  --color-primary-50: #e8fbff;
+  --color-primary-100: #c5f5ff;
+  --color-primary-200: #a1e4f2;
+  --color-primary-300: #72cedf;
+  --color-primary-400: #29b4cb;
+  --color-primary-500: #0094a8;
+  --color-primary-600: #007687;
+  --color-primary-700: #005a67;
+  --color-primary-800: #00434d;
+  --color-primary-900: #002c34;
+  --color-primary-950: #00181c;
+  --color-accent-50: #f7f5ff;
+  --color-accent-100: #ebe8ff;
+  --color-accent-200: #d8d0ff;
+  --color-accent-300: #c0b0ff;
+  --color-accent-400: #a68aff;
+  --color-accent-500: #8c5df8;
+  --color-accent-600: #7241d5;
+  --color-accent-700: #582da9;
+  --color-accent-800: #41207f;
+  --color-accent-900: #2b115a;
+  --color-accent-950: #180438;
+  --color-neutral-50: #eff9f9;
+  --color-neutral-100: #e2eeee;
+  --color-neutral-200: #cddadb;
+  --color-neutral-300: #b2c1c2;
+  --color-neutral-400: #94a5a6;
+  --color-neutral-500: #748788;
+  --color-neutral-600: #5b6d6e;
+  --color-neutral-700: #445354;
+  --color-neutral-800: #303d3e;
+  --color-neutral-900: #1e2929;
+  --color-neutral-950: #0d1616;
+  --color-background: #eff9f9;
+  --color-surface: #e2eeee;
+  --color-foreground: #0d1616;
+  --color-muted: #5b6d6e;
+  --color-border-default: #cddadb;
+  --background-image-primary: linear-gradient(120deg, #a68aff 0%, #0094a8 52%, #00434d 100%);
+  --background-image-mesh: radial-gradient(60% 85% at 12% 8%, #c0b0ff55 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #5d82b663 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #0094a840 0%, transparent 62%), linear-gradient(180deg, #1e2929, #0d1616);
+  --background-image-text: linear-gradient(92deg, #8c5df8 0%, #29b4cb 55%, #5d82b6 100%);
+
+  --font-heading: "Space Grotesk", ui-serif, serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0.125rem;
+  --radius-xl: 0.25rem;
+}
+"
+`;

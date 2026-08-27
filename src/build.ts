@@ -1,6 +1,6 @@
 import { buildGradients, buildNeutral, buildRamp } from "./color.ts";
 import type { DesignSystem, Ramp } from "./types.ts";
-import { RADIUS_PRESETS, type Vibe } from "./vibes.ts";
+import { RADIUS_PRESETS, type RadiusStyle, type Vibe } from "./vibes.ts";
 
 export function rampsFromVibe(vibe: Vibe): { primary: Ramp; accent: Ramp; neutral: Ramp } {
   const compress = { chromaScale: vibe.chromaScale, lRange: vibe.lRange };
@@ -27,19 +27,47 @@ export function semanticFromRamps(
   };
 }
 
-export function buildFromVibe(name: string, vibe: Vibe, fonts?: Partial<DesignSystem["fonts"]>): DesignSystem {
-  const colors = rampsFromVibe(vibe);
-  const radius = RADIUS_PRESETS[vibe.radius];
+/**
+ * Assembles a full DesignSystem from already-decided pieces (colors, fonts,
+ * radius, ratio). Shared by buildFromVibe (below) and the wizard's custom
+ * flow, so there's exactly one place that knows the DesignSystem shape.
+ * `createdAt` is injectable so callers (and tests) don't depend on the clock.
+ */
+export function buildDesignSystem(params: {
+  name: string;
+  vibeId: string;
+  colors: DesignSystem["colors"];
+  darkDefault: boolean;
+  fonts: DesignSystem["fonts"];
+  radiusStyle: RadiusStyle;
+  radius: { sm: string; md: string; lg: string; xl: string };
+  ratio: number;
+  createdAt?: string;
+}): DesignSystem {
   return {
     schemaVersion: 1,
-    name,
-    vibe: vibe.id,
-    createdAt: new Date().toISOString(),
-    colors,
-    semantic: semanticFromRamps(colors, vibe.darkModeDefault),
-    fonts: { ...vibe.fonts, ...fonts },
-    radius: { style: vibe.radius, ...radius },
-    typeScale: { ratio: vibe.typeRatio, baseRem: 1 },
-    gradients: buildGradients(colors),
+    name: params.name,
+    vibe: params.vibeId,
+    createdAt: params.createdAt ?? new Date().toISOString(),
+    colors: params.colors,
+    semantic: semanticFromRamps(params.colors, params.darkDefault),
+    fonts: params.fonts,
+    radius: { style: params.radiusStyle, ...params.radius },
+    typeScale: { ratio: params.ratio, baseRem: 1 },
+    gradients: buildGradients(params.colors),
   };
+}
+
+export function buildFromVibe(name: string, vibe: Vibe, fonts?: Partial<DesignSystem["fonts"]>): DesignSystem {
+  const colors = rampsFromVibe(vibe);
+  return buildDesignSystem({
+    name,
+    vibeId: vibe.id,
+    colors,
+    darkDefault: vibe.darkModeDefault,
+    fonts: { ...vibe.fonts, ...fonts },
+    radiusStyle: vibe.radius,
+    radius: RADIUS_PRESETS[vibe.radius],
+    ratio: vibe.typeRatio,
+  });
 }
