@@ -86,13 +86,12 @@ describe("storage CRUD", () => {
     expect(await listSystems()).toEqual([]);
   });
 
-  it("BUG (documented, not fixed here): one corrupted system file makes listSystems return [] for every system, not just the bad one", async () => {
+  it("skips a corrupted system file rather than failing the whole listing (regression: used to return [] for every system)", async () => {
     await saveSystem(sampleDs("good-one"));
     const systemsDir = join(dir, ".config", "kernic", "systems");
     await writeFile(join(systemsDir, "corrupted.json"), "{ not valid json");
-    // Promise.all over the JSON.parse calls rejects on the first bad file,
-    // and the outer catch swallows it down to [] — losing "good-one" too.
-    expect(await listSystems()).toEqual([]);
+    const systems = await listSystems();
+    expect(systems.map((s) => s.name)).toEqual(["good-one"]);
   });
 
   it("deletes an existing system and returns true", async () => {
@@ -186,7 +185,7 @@ describe("migrateLegacy (exercised via configDir)", () => {
     await expect(readdir(join(dir, ".config", "kernic", "systems"))).resolves.not.toContain("late.json");
   });
 
-  it("BUG (documented, not fixed here): deletes the legacy dir even when migration is skipped because target systems already exist", async () => {
+  it("preserves the legacy dir when migration is skipped because target systems already exist (regression: used to delete it, and the unmigrated data with it)", async () => {
     // Pre-populate the real kernic systems dir so migration's `existing.length === 0` guard is false.
     await mkdir(join(dir, ".config", "kernic", "systems"), { recursive: true });
     await writeFile(join(dir, ".config", "kernic", "systems", "existing.json"), JSON.stringify(sampleDs("existing")));
@@ -200,7 +199,8 @@ describe("migrateLegacy (exercised via configDir)", () => {
 
     // "unmigrated" was never copied over (skipped, since existing systems were present)...
     await expect(readdir(join(dir, ".config", "kernic", "systems"))).resolves.not.toContain("unmigrated.json");
-    // ...yet the legacy dsforge directory was deleted anyway, taking "unmigrated" with it.
-    await expect(readdir(join(dir, ".config"))).resolves.not.toContain("dsforge");
+    // ...but the legacy dsforge directory — and "unmigrated" within it — survives, rather than being deleted with nothing having moved.
+    await expect(readdir(join(dir, ".config"))).resolves.toContain("dsforge");
+    await expect(readdir(legacySystems)).resolves.toContain("unmigrated.json");
   });
 });

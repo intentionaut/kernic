@@ -35,8 +35,12 @@ async function migrateLegacy(): Promise<void> {
           await rename(join(legacy, entry), join(dir, entry));
         } catch {}
       }
+      // Only remove the legacy directory once its contents have actually
+      // been migrated. If `dir` already had systems, migration is skipped
+      // above — the legacy directory (and its data) must survive that,
+      // rather than being deleted with nothing having moved.
+      await rm(legacy, { recursive: true, force: true }).catch(() => {});
     }
-    await rm(legacy, { recursive: true, force: true }).catch(() => {});
   }
 }
 
@@ -82,10 +86,17 @@ export async function loadSystem(name: string): Promise<DesignSystem | null> {
 
 export async function listSystems(): Promise<DesignSystem[]> {
   try {
-    const files = (await readdir(await systemsDir())).filter((f) => f.endsWith(".json")).sort();
-    const systems = await Promise.all(
-      files.map(async (f) => JSON.parse(await readFile(join(await systemsDir(), f), "utf8")) as DesignSystem)
-    );
+    const dir = await systemsDir();
+    const files = (await readdir(dir)).filter((f) => f.endsWith(".json")).sort();
+    const systems: DesignSystem[] = [];
+    for (const f of files) {
+      try {
+        systems.push(JSON.parse(await readFile(join(dir, f), "utf8")) as DesignSystem);
+      } catch {
+        // Skip a corrupted file rather than failing the whole listing —
+        // one bad file used to take every other system down with it.
+      }
+    }
     return systems;
   } catch {
     return [];
