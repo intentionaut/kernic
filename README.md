@@ -15,7 +15,7 @@ The CLI is and always will be free and open source (MIT). It generates complete 
 - **Terminal palette picker** — live ANSI swatches, hue shifting, harmony rules (analogous / complementary / triadic / monochrome), tinted neutrals
 - **Real color science** — ramps generated in [OKLCH](https://oklch.com/) with automatic sRGB gamut fitting
 - **All ~2k Google Fonts** — live search with bundled offline fallback
-- **Pipe-friendly exports** — `css` · `tailwind` · `json` · `fonts` · stdout by default
+- **Pipe-friendly exports** — `css` · `tailwind` · `json` · `fonts` · `dtcg` · `design-md` · stdout by default
 
 ### Roadmap: what's free vs. paid
 
@@ -46,16 +46,16 @@ Requires Node 20+.
 ## Quick start
 
 ```bash
-kernic          # interactive wizard
-kn              # same, shorter
+kernic          # opens Studio, the visual editor, in your browser
+kernic wizard   # the same thing in the terminal
 ```
 
-The wizard walks through naming, vibe, palette tuning with live previews, heading/body/mono fonts, radius and type scale. Systems are saved as plain JSON in `~/.config/kernic/systems/`.
+Studio opens on a theme family, shows its looks, and one click applies a complete identity. The wizard walks through the same decisions as text prompts: naming, vibe, palette tuning with live previews, heading/body/mono fonts, radius and type scale. Systems are saved as plain JSON in `~/.config/kernic/systems/`.
 
-### Skip the wizard
+### Skip both
 
 ```bash
-kernic create launch-page --vibe corporate-clean --yes
+kernic create launch-page --vibe corporate --yes
 ```
 
 Vibes: `retro` (70s + 80s) · `tech` · `corporate` · `neon` · `minimal` · `soft-pastel` · `fun` · `earthy`
@@ -64,16 +64,18 @@ Vibes: `retro` (70s + 80s) · `tech` · `corporate` · `neon` · `minimal` · `s
 
 | Command | What it does |
 | --- | --- |
-| `kernic` | Interactive wizard |
+| `kernic` | **Visual editor** — opens Studio in your browser |
+| `kernic wizard [name]` | The terminal flow, if you'd rather not leave the shell |
 | `kernic create <name> [--vibe <id>]` | Create a new system |
 | `kernic list` | List saved systems |
 | `kernic show <name>` | Full spec + swatches |
 | `kernic palette <name>` | Just the swatches |
-| `kernic studio [name]` | **Visual editor** — opens in your browser, live preview, saves locally |
+| `kernic studio [name]` | Studio again, optionally opening an existing system |
 | `kernic export <name> -f <format>` | Output to stdout |
-| `kernic export <name> -f all -o ./design-system` | Write all token files |
+| `kernic export <name> -f all -o ./design-system` | Write every token file |
 | `kernic context <name> -o ./` | **Agent context** — writes `design.md` + W3C `tokens.json` for AI coding tools |
-| `kernic mcp` | **MCP server** — let Claude Code / Cursor / Windsurf read your systems |
+| `kernic apps` | **Your design across every project** — and which ones have fallen behind |
+| `kernic mcp` | **MCP server** — let Claude Code / Cursor / Windsurf read and apply your systems |
 | `kernic delete <name>` | Remove a system |
 
 ## Studio
@@ -99,7 +101,16 @@ kernic export midnight-neon -f css >> styles/global.css
 
 # Machine-readable tokens for tools and AI agents
 kernic export midnight-neon -f json > design/tokens.json
+
+# W3C DTCG tokens for Figma / Terrazzo / Style Dictionary
+kernic export midnight-neon -f dtcg > design/tokens.dtcg.json
+
+# Everything at once — the two stylesheets, both token files,
+# the font links, and the agent brief
+kernic export midnight-neon -f all -o ./design-system
 ```
+
+Formats: `css` · `tailwind` · `json` · `fonts` · `dtcg` · `design-md` · `all`. Every format goes to stdout by default, or to files with `-o <dir>`. Nothing here is behind a paywall and nothing ever will be — the token format is only worth something if everyone can write it.
 
 ## Use with AI agents
 
@@ -117,13 +128,37 @@ Visual design: follow ./design.md exactly. Use only its tokens — never invent 
 
 `design.md` carries explicit adherence rules plus every token (colors, semantics, type scale, radius, fonts); `tokens.json` is W3C DTCG-style, so Figma/Terrazzo/Style Dictionary pipelines read it too.
 
-Or let agents query kernic live over MCP:
+Or skip the copy-paste and let the agent do all of it over MCP:
 
 ```bash
 claude mcp add kernic -- npx kernic mcp
 ```
 
-Tools: `list_systems` · `get_system` · `get_tokens` (design-md / css / tailwind / fonts / dtcg / json) · `list_vibes`.
+Then, inside Claude Code / Cursor / Windsurf: *"set this project up with my kernic design system"*. The agent lists your systems, writes `design.md` and `tokens.json` into the project, and hands you the one line to paste into `CLAUDE.md`. If you have no system yet it can show you the 33 curated looks and build one from your pick, without you leaving the session.
+
+| Tool | What the agent does with it |
+| --- | --- |
+| `list_systems` | See what you already have |
+| `get_system` | Read one system's full spec |
+| `get_tokens` | Pull tokens into the conversation (`design-md` / `css` / `tailwind` / `fonts` / `dtcg` / `json`) |
+| `apply_to_project` | **Write the system into your project** — `design.md` + `tokens.json`, optionally `tokens.css` and `tailwind.css` |
+| `create_system` | Make and save a new system from a look or a vibe |
+| `list_looks` | The 33 curated looks — complete identities, one pick each |
+| `list_vibes` | The 8 broader vibe presets |
+
+`apply_to_project` is the one that writes to disk, so it is deliberately careful: it refuses `..` in a path, refuses your home directory and the filesystem root, only writes at the top level of the directory you name, and never replaces a file kernic did not write. If it finds one of yours it leaves it alone and tells you which.
+
+## One design across every app
+
+Applied a system to more than one project? `kernic apps` shows the whole picture:
+
+```bash
+kernic apps
+```
+
+It lists every project you've applied a system to, flags any whose tokens have fallen behind the system they came from, and prints the exact command to bring each one back — ready to paste. Entries live in `~/.config/kernic/projects.json`, and disappear on their own when a project folder is deleted.
+
+Worth knowing: kernic only updates the project you run it in. Change a system and the other projects keep the tokens they already have until you re-apply there. `kernic apps` exists so that's visible rather than surprising. It mentions this once, the first time it's actually true for you; `kernic apps --mute` or `KERNIC_NO_UPSELL=1` turns that off for good.
 
 ## Development
 
@@ -134,7 +169,7 @@ npm run dev      # CLI from source via tsx
 npm run build    # tsc → dist/
 ```
 
-Layout: `src/color.ts` (OKLCH engine) · `src/vibes.ts` (presets) · `src/fonts.ts` (Google Fonts) · `src/wizard.ts` (interactive flow) · `src/export.ts` (exporters) · `src/storage.ts` (~/.config/kernic)
+Layout: `src/color.ts` (OKLCH engine) · `src/vibes.ts` (presets) · `src/studio/looks.ts` (curated looks) · `src/fonts.ts` (Google Fonts) · `src/wizard.ts` (interactive flow) · `src/context.ts` (agent brief + DTCG) · `src/export.ts` (exporters and the format registry) · `src/projects.ts` (which project uses which system) · `src/mcp.ts` (MCP server) · `src/storage.ts` (~/.config/kernic)
 
 ## Author
 
