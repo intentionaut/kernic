@@ -1,9 +1,9 @@
 # Changelog
 
-What changed in each release of kernic, and what it means for you.
+New changes to Kernic.
 
-kernic is free and open source, and always will be. Your design systems are
-plain JSON files on your own machine.
+Kernic is free and open source software we pride ourselves on shipping to help
+improve the vibe-coded web.
 
 ---
 
