@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fontImportUrl, getFontCatalog, searchFonts } from "./fonts.ts";
+import { MAX_FONT_QUERY_LENGTH, fontImportUrl, getFontCatalog, rankFonts, searchFonts } from "./fonts.ts";
 
 describe("searchFonts (pure)", () => {
   const catalog = [
@@ -12,9 +12,12 @@ describe("searchFonts (pure)", () => {
     { family: "Fraunces", category: "serif" },
   ];
 
-  it("returns the first `limit` entries for an empty or whitespace query", async () => {
-    expect(await searchFonts(catalog, "", 2)).toEqual(catalog.slice(0, 2));
-    expect(await searchFonts(catalog, "   ", 2)).toEqual(catalog.slice(0, 2));
+  it("returns a curated head for an empty or whitespace query, not an arbitrary slice", async () => {
+    // Curated order comes from the hand-picked BUNDLED list: Inter leads it,
+    // Fraunces sits ahead of both monospace faces. An arbitrary catalog.slice()
+    // would have returned Inter + JetBrains Mono here.
+    expect((await searchFonts(catalog, "", 2)).map((f) => f.family)).toEqual(["Inter", "Fraunces"]);
+    expect((await searchFonts(catalog, "   ", 2)).map((f) => f.family)).toEqual(["Inter", "Fraunces"]);
   });
 
   it("matches case-insensitively as a substring", async () => {
@@ -25,6 +28,67 @@ describe("searchFonts (pure)", () => {
   it("respects the limit even with more matches available", async () => {
     const results = await searchFonts(catalog, "mono", 1);
     expect(results.length).toBe(1);
+  });
+});
+
+describe("rankFonts (relevance ordering)", () => {
+  const catalog = [
+    { family: "Sans Serif Pro", category: "sans-serif" }, // word start (2nd word)
+    { family: "Serif Deluxe", category: "serif" }, // prefix
+    { family: "Noto Serif", category: "serif" }, // word start
+    { family: "Serif", category: "serif" }, // exact
+    { family: "Aserif Bold", category: "serif" }, // substring only, mid-word
+  ];
+
+  it("orders exact, then prefix, then word start, then substring", () => {
+    expect(rankFonts(catalog, "serif").map((f) => f.family)).toEqual([
+      "Serif",
+      "Serif Deluxe",
+      "Noto Serif",
+      "Sans Serif Pro",
+      "Aserif Bold",
+    ]);
+  });
+
+  it("sorts alphabetically within a tier so results don't jitter between keystrokes", () => {
+    const tied = [
+      { family: "Monaco", category: "monospace" },
+      { family: "Mona Sans", category: "sans-serif" },
+      { family: "Monda", category: "sans-serif" },
+    ];
+    expect(rankFonts(tied, "mon").map((f) => f.family)).toEqual(["Mona Sans", "Monaco", "Monda"]);
+    expect(rankFonts(tied, "MON").map((f) => f.family)).toEqual(["Mona Sans", "Monaco", "Monda"]);
+  });
+
+  it("returns every match, not a truncated set — the caller decides the limit", () => {
+    const many = Array.from({ length: 120 }, (_, i) => ({ family: `Mono ${i}`, category: "monospace" }));
+    expect(rankFonts(many, "mono").length).toBe(120);
+  });
+
+  it("returns the whole catalog, curated families first, for an empty query", () => {
+    const mixed = [
+      { family: "Zzz Unknown", category: "sans-serif" },
+      { family: "Aaa Unknown", category: "sans-serif" },
+      { family: "Inter", category: "sans-serif" },
+    ];
+    expect(rankFonts(mixed, "").map((f) => f.family)).toEqual(["Inter", "Aaa Unknown", "Zzz Unknown"]);
+  });
+
+  it("returns nothing for a query that matches nothing", () => {
+    expect(rankFonts(catalog, "qqqzzz")).toEqual([]);
+  });
+
+  it("truncates an absurdly long query rather than searching with it", () => {
+    expect(rankFonts(catalog, "serif" + "x".repeat(MAX_FONT_QUERY_LENGTH * 4))).toEqual([]);
+  });
+
+  it("stays fast across many queries on a catalog the size of Google's", () => {
+    const big = Array.from({ length: 2000 }, (_, i) => ({ family: `Family ${i}`, category: "sans-serif" }));
+    rankFonts(big, "family"); // warms the per-catalog index
+    const start = performance.now();
+    for (let i = 0; i < 50; i++) rankFonts(big, `family ${i}`);
+    // Guards against regressing to lowercasing the whole catalog per keystroke.
+    expect(performance.now() - start).toBeLessThan(1000);
   });
 });
 

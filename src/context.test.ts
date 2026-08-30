@@ -1,9 +1,9 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { designBrief, dtcgTokens, writeContext } from "./context.ts";
+import { describe, expect, it } from "vitest";
+import { agentRule, agentRuleLines, designBrief, dtcgTokens } from "./context.ts";
 import { FIXED_CREATED_AT, FIXTURE_EDGE_DS, FIXTURE_VIBE_DS } from "./test/fixtures.ts";
+
+// writeContext moved to export.ts (next to the other renderers, so one module
+// owns the format -> filename map). Its tests live in export.test.ts.
 
 describe("designBrief", () => {
   it("contains all 7 numbered rules for AI agents", () => {
@@ -55,23 +55,23 @@ describe("dtcgTokens", () => {
   });
 });
 
-describe("writeContext", () => {
-  let dir: string;
-
-  beforeEach(async () => {
-    dir = await mkdtemp(join(tmpdir(), "kernic-context-test-"));
-  });
-  afterEach(async () => {
-    await rm(dir, { recursive: true, force: true });
+describe("agentRule", () => {
+  it("names the system and its vibe so a pasted rule stays unambiguous", () => {
+    const rule = agentRule(FIXTURE_VIBE_DS);
+    expect(rule).toContain(FIXTURE_VIBE_DS.name);
+    expect(rule).toContain(`vibe: ${FIXTURE_VIBE_DS.vibe}`);
+    expect(rule).toContain("./design.md");
   });
 
-  it("writes design.md and tokens.json with content matching the pure builders", async () => {
-    const written = await writeContext(FIXTURE_VIBE_DS, dir);
-    expect(written).toEqual([join(dir, "design.md"), join(dir, "tokens.json")]);
+  it("is a single line, so it can be pasted into CLAUDE.md as one rule", () => {
+    expect(agentRule(FIXTURE_VIBE_DS)).not.toContain("\n");
+  });
 
-    const md = await readFile(join(dir, "design.md"), "utf8");
-    const json = await readFile(join(dir, "tokens.json"), "utf8");
-    expect(md).toBe(designBrief(FIXTURE_VIBE_DS));
-    expect(json).toBe(dtcgTokens(FIXTURE_VIBE_DS));
+  it("joins exactly the lines the CLI prints, so CLI and MCP copy cannot drift", () => {
+    expect(agentRule(FIXTURE_VIBE_DS)).toBe(agentRuleLines(FIXTURE_VIBE_DS).join(" "));
+  });
+
+  it("honours a custom brief path", () => {
+    expect(agentRule(FIXTURE_VIBE_DS, "./docs/design.md")).toContain("./docs/design.md");
   });
 });

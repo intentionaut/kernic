@@ -1,5 +1,25 @@
-import { describe, expect, it } from "vitest";
-import { exportCss, exportFonts, exportTailwind } from "./export.ts";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { designBrief, dtcgTokens } from "./context.ts";
+import {
+  EXPORT_FORMATS,
+  FORMAT_LIST,
+  contextArtifacts,
+  exportArtifacts,
+  isKernicOwned,
+  planArtifacts,
+  exportCss,
+  exportFileName,
+  exportFonts,
+  exportTailwind,
+  isExportFormat,
+  renderExport,
+  renderProjectFile,
+  writeArtifacts,
+  writeContext,
+} from "./export.ts";
 import { FIXTURE_EDGE_DS, FIXTURE_VIBE_DS } from "./test/fixtures.ts";
 import { RAMP_STOPS } from "./types.ts";
 
@@ -63,5 +83,225 @@ describe("exportFonts", () => {
     const out = exportFonts(FIXTURE_VIBE_DS);
     const linkTags = out.match(/<link href="[^"]+" rel="stylesheet">/g) ?? [];
     expect(linkTags.length).toBe(3);
+  });
+});
+
+describe("artifact registry", () => {
+  it("renders every declared format without throwing", () => {
+    for (const format of EXPORT_FORMATS) {
+      expect(renderExport(FIXTURE_VIBE_DS, format).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("routes each format to the matching exporter", () => {
+    expect(renderExport(FIXTURE_VIBE_DS, "css")).toBe(exportCss(FIXTURE_VIBE_DS));
+    expect(renderExport(FIXTURE_VIBE_DS, "tailwind")).toBe(exportTailwind(FIXTURE_VIBE_DS));
+    expect(renderExport(FIXTURE_VIBE_DS, "fonts")).toBe(exportFonts(FIXTURE_VIBE_DS));
+    expect(renderExport(FIXTURE_VIBE_DS, "dtcg")).toBe(dtcgTokens(FIXTURE_VIBE_DS));
+    expect(renderExport(FIXTURE_VIBE_DS, "design-md")).toBe(designBrief(FIXTURE_VIBE_DS));
+    expect(JSON.parse(renderExport(FIXTURE_VIBE_DS, "json"))).toEqual(FIXTURE_VIBE_DS);
+  });
+
+  it("exposes dtcg and design-md as first-class formats (they used to be MCP-only)", () => {
+    expect(EXPORT_FORMATS).toContain("dtcg");
+    expect(EXPORT_FORMATS).toContain("design-md");
+    expect(isExportFormat("dtcg")).toBe(true);
+    expect(isExportFormat("design-md")).toBe(true);
+  });
+
+  it("rejects an unknown format with the canonical format list", () => {
+    expect(() => renderExport(FIXTURE_VIBE_DS, "yaml")).toThrow(`Unknown format "yaml". Use ${FORMAT_LIST}.`);
+    expect(() => exportFileName("yaml")).toThrow(`Unknown format "yaml". Use ${FORMAT_LIST}.`);
+    expect(() => exportArtifacts(FIXTURE_VIBE_DS, "yaml")).toThrow(`Unknown format "yaml". Use ${FORMAT_LIST}.`);
+  });
+
+  it("lists every format it can render in FORMAT_LIST, plus all", () => {
+    for (const format of EXPORT_FORMATS) expect(FORMAT_LIST).toContain(format);
+    expect(FORMAT_LIST).toContain("all");
+  });
+
+  it("keeps the published filenames for the pre-0.1.5 formats", () => {
+    expect(exportFileName("css")).toBe("tokens.css");
+    expect(exportFileName("tailwind")).toBe("tailwind.css");
+    expect(exportFileName("json")).toBe("tokens.json");
+    expect(exportFileName("fonts")).toBe("fonts.html");
+  });
+
+  it("gives the DTCG export its own filename so -f json keeps tokens.json", () => {
+    expect(exportFileName("dtcg")).toBe("tokens.dtcg.json");
+    expect(exportFileName("json")).toBe("tokens.json");
+  });
+});
+
+describe("exportArtifacts", () => {
+  it("-f all now includes design.md and the DTCG tokens alongside the original four", () => {
+    const files = exportArtifacts(FIXTURE_VIBE_DS, "all").map((a) => a.file);
+    // The four -f all has always written...
+    expect(files).toEqual(expect.arrayContaining(["tokens.css", "tailwind.css", "tokens.json", "fonts.html"]));
+    // ...plus the artifact a vibe coder actually needs, which it used to skip.
+    expect(files).toContain("design.md");
+    expect(files).toContain("tokens.dtcg.json");
+  });
+
+  it("writes unique filenames for -f all", () => {
+    const files = exportArtifacts(FIXTURE_VIBE_DS, "all").map((a) => a.file);
+    expect(new Set(files).size).toBe(files.length);
+  });
+
+  it("returns exactly one artifact for a single format", () => {
+    expect(exportArtifacts(FIXTURE_VIBE_DS, "css")).toEqual([
+      { file: "tokens.css", content: exportCss(FIXTURE_VIBE_DS) },
+    ]);
+  });
+});
+
+describe("contextArtifacts", () => {
+  it("is design.md + a DTCG tokens.json, matching what kernic context has always written", () => {
+    expect(contextArtifacts(FIXTURE_VIBE_DS)).toEqual([
+      { file: "design.md", content: designBrief(FIXTURE_VIBE_DS) },
+      { file: "tokens.json", content: dtcgTokens(FIXTURE_VIBE_DS) },
+    ]);
+  });
+
+  it("appends requested stylesheets", () => {
+    const files = contextArtifacts(FIXTURE_VIBE_DS, ["css", "tailwind"]).map((a) => a.file);
+    expect(files).toEqual(["design.md", "tokens.json", "tokens.css", "tailwind.css"]);
+  });
+
+  it("ignores extras that would collide with, or duplicate, the brief pair", () => {
+    const files = contextArtifacts(FIXTURE_VIBE_DS, ["json", "dtcg", "design-md"]).map((a) => a.file);
+    expect(files).toEqual(["design.md", "tokens.json"]);
+  });
+
+  it("does not duplicate a stylesheet requested twice", () => {
+    const files = contextArtifacts(FIXTURE_VIBE_DS, ["css", "css"]).map((a) => a.file);
+    expect(files).toEqual(["design.md", "tokens.json", "tokens.css"]);
+  });
+});
+
+describe("renderProjectFile", () => {
+  it("regenerates every filename kernic writes into a project", () => {
+    expect(renderProjectFile(FIXTURE_VIBE_DS, "design.md")).toBe(designBrief(FIXTURE_VIBE_DS));
+    expect(renderProjectFile(FIXTURE_VIBE_DS, "tokens.json")).toBe(dtcgTokens(FIXTURE_VIBE_DS));
+    expect(renderProjectFile(FIXTURE_VIBE_DS, "tokens.dtcg.json")).toBe(dtcgTokens(FIXTURE_VIBE_DS));
+    expect(renderProjectFile(FIXTURE_VIBE_DS, "tokens.css")).toBe(exportCss(FIXTURE_VIBE_DS));
+    expect(renderProjectFile(FIXTURE_VIBE_DS, "tailwind.css")).toBe(exportTailwind(FIXTURE_VIBE_DS));
+    expect(renderProjectFile(FIXTURE_VIBE_DS, "fonts.html")).toBe(exportFonts(FIXTURE_VIBE_DS));
+  });
+
+  it("returns null for a filename kernic does not own, rather than guessing", () => {
+    expect(renderProjectFile(FIXTURE_VIBE_DS, "package.json")).toBeNull();
+    expect(renderProjectFile(FIXTURE_VIBE_DS, "")).toBeNull();
+  });
+});
+
+describe("writeArtifacts / writeContext", () => {
+  let dir: string;
+
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), "kernic-export-test-"));
+  });
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("writes design.md and tokens.json with content matching the pure builders", async () => {
+    const written = await writeContext(FIXTURE_VIBE_DS, dir);
+    expect(written).toEqual([join(dir, "design.md"), join(dir, "tokens.json")]);
+
+    expect(await readFile(join(dir, "design.md"), "utf8")).toBe(designBrief(FIXTURE_VIBE_DS));
+    expect(await readFile(join(dir, "tokens.json"), "utf8")).toBe(dtcgTokens(FIXTURE_VIBE_DS));
+  });
+
+  it("creates the target directory when it does not exist", async () => {
+    const nested = join(dir, "a", "b");
+    const written = await writeArtifacts(nested, [{ file: "x.txt", content: "hi" }]);
+    expect(written).toEqual([join(nested, "x.txt")]);
+    expect(await readFile(join(nested, "x.txt"), "utf8")).toBe("hi");
+  });
+
+  it("writes every -f all artifact to disk", async () => {
+    const written = await writeArtifacts(dir, exportArtifacts(FIXTURE_VIBE_DS, "all"));
+    expect(written.map((path) => path.replace(`${dir}/`, ""))).toEqual([
+      "tokens.css",
+      "tailwind.css",
+      "tokens.json",
+      "fonts.html",
+      "tokens.dtcg.json",
+      "design.md",
+    ]);
+  });
+});
+
+describe("planArtifacts — never destroys a file the user owns", () => {
+  let dir: string;
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), "kernic-plan-"));
+  });
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  const pair = () => contextArtifacts(FIXTURE_VIBE_DS);
+
+  it("writes everything into an empty directory", async () => {
+    const plan = await planArtifacts(dir, pair());
+    expect(plan.toWrite.map((a) => a.file)).toEqual(["design.md", "tokens.json"]);
+    expect(plan.blocked).toEqual([]);
+  });
+
+  it("blocks a tokens.json the user wrote, and still writes design.md", async () => {
+    // tokens.json is also Style Dictionary's and Tokens Studio's filename.
+    await writeFile(join(dir, "tokens.json"), '{"my":"config"}', "utf8");
+    const plan = await planArtifacts(dir, pair());
+    expect(plan.blocked).toEqual(["tokens.json"]);
+    expect(plan.toWrite.map((a) => a.file)).toEqual(["design.md"]);
+    expect(await readFile(join(dir, "tokens.json"), "utf8")).toBe('{"my":"config"}');
+  });
+
+  it("replaces a tokens.json kernic itself wrote", async () => {
+    await writeFile(join(dir, "tokens.json"), dtcgTokens(FIXTURE_VIBE_DS), "utf8");
+    const plan = await planArtifacts(dir, pair());
+    expect(plan.blocked).toEqual([]);
+    expect(plan.replaced).toEqual(["tokens.json"]);
+  });
+
+  it("replaces a foreign file only when force is set, and says whose it was", async () => {
+    await writeFile(join(dir, "tokens.json"), '{"my":"config"}', "utf8");
+    const plan = await planArtifacts(dir, pair(), { force: true });
+    expect(plan.blocked).toEqual([]);
+    expect(plan.replaced).toEqual(["tokens.json (was not written by kernic)"]);
+    expect(plan.toWrite).toHaveLength(2);
+  });
+
+  it("protects every artifact -f all writes, not just tokens.json", async () => {
+    await writeFile(join(dir, "tokens.css"), "body { color: red }", "utf8");
+    await writeFile(join(dir, "design.md"), "# my own notes", "utf8");
+    const plan = await planArtifacts(dir, exportArtifacts(FIXTURE_VIBE_DS, "all"));
+    expect(plan.blocked).toEqual(expect.arrayContaining(["tokens.css", "design.md"]));
+  });
+
+  it("treats a truncated or invalid kernic file as the user's", async () => {
+    await writeFile(join(dir, "tokens.json"), "{ not json", "utf8");
+    const plan = await planArtifacts(dir, pair());
+    expect(plan.blocked).toEqual(["tokens.json"]);
+  });
+});
+
+describe("isKernicOwned", () => {
+  it("recognises each artifact kernic generates", () => {
+    expect(isKernicOwned("design.md", designBrief(FIXTURE_VIBE_DS))).toBe(true);
+    expect(isKernicOwned("tokens.json", dtcgTokens(FIXTURE_VIBE_DS))).toBe(true);
+    expect(isKernicOwned("tokens.css", exportCss(FIXTURE_VIBE_DS))).toBe(true);
+  });
+
+  it("does not claim a lookalike from another tokens tool", () => {
+    expect(isKernicOwned("tokens.json", '{"color":{"red":{"value":"#f00"}}}')).toBe(false);
+    expect(isKernicOwned("design.md", "# Design notes\nby hand")).toBe(false);
+    expect(isKernicOwned("tokens.css", ":root { --brand: red }")).toBe(false);
+  });
+
+  it("never claims a filename it does not generate", () => {
+    expect(isKernicOwned("package.json", '{"$extensions":{"com.kernic":{}}}')).toBe(false);
   });
 });

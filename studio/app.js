@@ -65,8 +65,43 @@ async function api(path, opts) {
 
 /* ---------- palette + preview ---------- */
 
+/** Monotonic request id — a slow /api/palette reply must never clobber a newer one. */
+let paletteSeq = 0;
+let palettePending = false;
+let paletteInFlight = false;
+let paletteLastRun = 0;
+let palettePumpTimer = null;
+const PALETTE_MIN_MS = 80;
+
+/**
+ * Coalescing entry point for continuous controls (the hue slider fires ~60×/s).
+ * At most one request is in flight and at most one starts per PALETTE_MIN_MS,
+ * and a trailing run always happens so the final slider position is the one shown.
+ */
+function schedulePaletteRefresh() {
+  palettePending = true;
+  pumpPalette();
+}
+
+function pumpPalette() {
+  if (paletteInFlight || !palettePending) return;
+  const wait = PALETTE_MIN_MS - (Date.now() - paletteLastRun);
+  if (wait > 0) {
+    clearTimeout(palettePumpTimer);
+    palettePumpTimer = setTimeout(pumpPalette, wait);
+    return;
+  }
+  palettePending = false;
+  paletteInFlight = true;
+  paletteLastRun = Date.now();
+  refreshPalette()
+    .catch((e) => setStatus(e.message, "err"))
+    .finally(() => { paletteInFlight = false; pumpPalette(); });
+}
+
 async function refreshPalette() {
   $("hueVal").textContent = `${state.hue}°`;
+  const seq = ++paletteSeq;
   const payload = { harmony: state.harmony, neutralTintHue: tintHue() };
   if (state.chromaScale != null) payload.chromaScale = state.chromaScale;
   if (state.lRange) payload.lRange = state.lRange;
@@ -82,6 +117,7 @@ async function refreshPalette() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+  if (seq !== paletteSeq) return; // a newer request already answered — drop this one
   state.ramps = result.colors;
   state.semanticRaw = result.semantic;
   state.gradients = result.gradients;
@@ -89,44 +125,136 @@ async function refreshPalette() {
   renderPreview();
 }
 
-function renderRamps() {
+/** Structural signature of the ramp set — when it is unchanged we repaint in place. */
+let rampsSig = "";
+
+function buildRampRows(entries) {
   const host = $("ramps");
   host.innerHTML = "";
-  for (const [name, ramp] of Object.entries(state.ramps)) {
+  for (const [name, ramp] of entries) {
     const row = document.createElement("div");
     row.className = "ramp-row";
     const label = document.createElement("span");
     label.className = "ramp-name";
     label.textContent = name;
     row.appendChild(label);
-    for (const [stop, hex] of Object.entries(ramp)) {
+    for (const stop of Object.keys(ramp)) {
       const sw = document.createElement("div");
       sw.className = "swatch";
-      sw.style.background = hex;
-      const lum = parseInt(hex.slice(1, 3), 16) * 0.2126 + parseInt(hex.slice(3, 5), 16) * 0.7152 + parseInt(hex.slice(5, 7), 16) * 0.0722;
-      sw.style.color = lum > 150 ? "#000" : "#fff";
       sw.textContent = stop;
-      sw.title = hex;
-      sw.onclick = () => {
-        navigator.clipboard?.writeText(hex);
-        toast(`${hex} copied`);
-      };
       row.appendChild(sw);
     }
     host.appendChild(row);
   }
 }
 
-function applyFont(family, linkId) {
-  let link = document.getElementById(linkId);
-  const url = `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}:wght@400;500;600;700&display=swap`;
-  if (!link) {
-    link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.id = linkId;
-    document.head.appendChild(link);
+function renderRamps() {
+  const host = $("ramps");
+  const entries = Object.entries(state.ramps);
+  const sig = entries.map(([n, r]) => `${n}:${Object.keys(r).join(",")}`).join("|");
+  if (sig !== rampsSig) {
+    buildRampRows(entries);
+    rampsSig = sig;
   }
-  link.href = url;
+  entries.forEach(([, ramp], ri) => {
+    const row = host.children[ri];
+    Object.values(ramp).forEach((hex, si) => {
+      const sw = row.children[si + 1]; // child 0 is the ramp name
+      if (!sw || sw.dataset.hex === hex) return;
+      sw.dataset.hex = hex;
+      sw.style.background = hex;
+      const lum = parseInt(hex.slice(1, 3), 16) * 0.2126 + parseInt(hex.slice(3, 5), 16) * 0.7152 + parseInt(hex.slice(5, 7), 16) * 0.0722;
+      sw.style.color = lum > 150 ? "#000" : "#fff";
+      sw.title = hex;
+    });
+  });
+}
+
+/* ---------- google fonts: safe names, safe URLs, deduplicated loading ---------- */
+
+/**
+ * Allowlist for family names. Everything that reaches a Google Fonts URL or a CSS
+ * custom property passes through here, so quotes, semicolons, backslashes and
+ * angle brackets can never get into either.
+ */
+const SAFE_FAMILY = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,63}$/;
+
+function isSafeFamily(family) {
+  return typeof family === "string" && SAFE_FAMILY.test(family.trim());
+}
+
+const FONT_FALLBACK = {
+  heading: "ui-serif, Georgia, serif",
+  body: "ui-sans-serif, system-ui, sans-serif",
+  mono: "ui-monospace, monospace",
+};
+
+/** A font stack that is always safe to interpolate into CSS. */
+function fontStack(family, fallback) {
+  return isSafeFamily(family) ? `"${family.trim()}", ${fallback}` : fallback;
+}
+
+/** Generic face standing in for a catalog category until its webfont arrives. */
+function categoryGeneric(category) {
+  const c = String(category ?? "").toLowerCase().replace(/\s+/g, "-");
+  if (c === "serif") return "serif";
+  if (c === "monospace") return "ui-monospace, monospace";
+  if (c === "handwriting") return "cursive";
+  return "ui-sans-serif, sans-serif";
+}
+
+function fontCssUrl(family, extra) {
+  const name = family.trim().split(/ +/).map(encodeURIComponent).join("+");
+  return `https://fonts.googleapis.com/css2?family=${name}${extra}&display=swap`;
+}
+
+/** family -> <link>. Full weights, kept for the session. */
+const loadedFaces = new Map();
+/** family -> <link>. Name-only subset used to render dropdown rows in their own face. */
+const previewFaces = new Map();
+
+/** Idempotent: a family is only ever requested once, however many callers ask. */
+function loadFontFace(family) {
+  if (!isSafeFamily(family)) return;
+  const name = family.trim();
+  if (loadedFaces.has(name)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.dataset.font = name;
+  link.href = fontCssUrl(name, ":wght@400;500;600;700");
+  document.head.appendChild(link);
+  loadedFaces.set(name, link);
+  const subset = previewFaces.get(name); // the full face supersedes the subset
+  if (subset) {
+    subset.remove();
+    previewFaces.delete(name);
+  }
+}
+
+/**
+ * Dropdown rows show their own typeface, but a webfont per row is the exact trap
+ * that made init slow. These requests are subsetted to the family name's own
+ * characters, only fire for rows actually on screen, and are dropped again as
+ * soon as those rows go away.
+ */
+function loadPreviewFace(family) {
+  if (!isSafeFamily(family)) return;
+  const name = family.trim();
+  if (loadedFaces.has(name) || previewFaces.has(name)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.dataset.fontPreview = name;
+  link.href = fontCssUrl(name, `&text=${encodeURIComponent(name)}`);
+  document.head.appendChild(link);
+  previewFaces.set(name, link);
+}
+
+function releasePreviewFaces(keep) {
+  for (const [name, link] of previewFaces) {
+    if (keep.has(name)) continue;
+    link.remove();
+    previewFaces.delete(name);
+  }
 }
 
 function scaleVars() {
@@ -135,12 +263,32 @@ function scaleVars() {
   return names.map((n, i) => [`--text-${n}`, Math.pow(state.ratio, exps[i]).toFixed(3) + "rem"]);
 }
 
+/** One <style> element holds every preview token, so a repaint is a single write. */
+let pvStyleEl = null;
+let pvStyleText = "";
+
+function previewStyle() {
+  if (!pvStyleEl) {
+    pvStyleEl = document.createElement("style");
+    pvStyleEl.id = "pvVars";
+    document.head.appendChild(pvStyleEl);
+  }
+  return pvStyleEl;
+}
+
 function renderPreview() {
   const pv = $("preview");
   pv.dataset.vibe = state.vibeId ?? "custom";
   const sem = pickMode(state.semanticRaw, state.mode);
+  const inv = pickMode(state.semanticRaw, state.mode === "light" ? "dark" : "light");
   const r = state.meta.radii[state.radiusStyle];
-  const set = (k, v) => pv.style.setProperty(k, v);
+  const decl = [];
+  const set = (k, v) => {
+    if (v == null) return;
+    const s = String(v);
+    if (s.includes("}") || s.includes("<")) return; // never let a value escape the rule
+    decl.push(`${k}:${s}`);
+  };
 
   for (const [rampName, ramp] of Object.entries(state.ramps))
     for (const [stop, hex] of Object.entries(ramp))
@@ -157,25 +305,273 @@ function renderPreview() {
   set("--pv-muted-text", sem.mutedText);
   set("--pv-border", sem.border);
   set("--semantic-ring", sem.ring);
-  const inv = pickMode(state.semanticRaw, state.mode === "light" ? "dark" : "light");
   set("--pv-inverse-bg", inv.background);
   set("--pv-inverse-text", inv.text);
   set("--pv-inverse-muted", inv.mutedText);
-  set("--font-heading", `"${state.fonts.heading}", ui-serif, Georgia, serif`);
-  set("--font-body", `"${state.fonts.body}", ui-sans-serif, system-ui, sans-serif`);
-  set("--font-mono", `"${state.fonts.mono}", ui-monospace, monospace`);
+  set("--font-heading", fontStack(state.fonts.heading, FONT_FALLBACK.heading));
+  set("--font-body", fontStack(state.fonts.body, FONT_FALLBACK.body));
+  set("--font-mono", fontStack(state.fonts.mono, FONT_FALLBACK.mono));
   set("--radius-sm", r.sm);
   set("--radius-md", r.md);
   set("--radius-lg", r.lg);
   for (const [k, v] of scaleVars()) set(k, v);
 
-  applyFont(state.fonts.heading, "gf-heading");
-  applyFont(state.fonts.body, "gf-body");
-  applyFont(state.fonts.mono, "gf-mono");
+  const text = `#preview{${decl.join(";")}}`;
+  if (text !== pvStyleText) {
+    previewStyle().textContent = text;
+    pvStyleText = text;
+  }
+
+  loadFontFace(state.fonts.heading);
+  loadFontFace(state.fonts.body);
+  loadFontFace(state.fonts.mono);
 
   document.querySelectorAll("#modeRow button").forEach((b) =>
     b.classList.toggle("on", b.dataset.mode === state.mode));
 }
+
+/* ---------- font search combobox ---------- */
+
+const FONT_LIMIT = 24;
+const FONT_DEBOUNCE_MS = 170;
+const FACE_SETTLE_MS = 260;
+
+/** lowercase family -> canonical family. Everything we have ever seen from the server. */
+const knownFamilies = new Map();
+
+function rememberFamily(family) {
+  if (isSafeFamily(family)) knownFamilies.set(family.trim().toLowerCase(), family.trim());
+}
+
+async function searchFontsApi(q) {
+  const body = await api(`/api/fonts?q=${encodeURIComponent(q)}&limit=${FONT_LIMIT}`);
+  const results = (body.results ?? []).filter((f) => isSafeFamily(f?.family));
+  for (const f of results) rememberFamily(f.family);
+  return {
+    results,
+    // `total` is the pre-truncation match count; older servers omit it.
+    total: typeof body.total === "number" ? body.total : results.length,
+    live: body.live !== false,
+  };
+}
+
+/** A searchable, keyboard-driven picker over the whole Google Fonts catalog. */
+function createFontCombo(inputId, key) {
+  const input = $(inputId);
+  const pop = $(`${inputId}Pop`);
+  const list = $(`${inputId}List`);
+  const meta = $(`${inputId}Meta`);
+
+  let seq = 0;          // monotonic — a late reply for an older query is discarded
+  let timer = null;     // debounce handle
+  let pending = null;   // the search currently running, awaited before validating
+  let faceTimer = null;
+  let results = [];
+  let active = -1;
+  let open = false;
+  let committed = state.fonts[key];
+
+  function setOpen(next) {
+    open = next;
+    pop.hidden = !next;
+    input.setAttribute("aria-expanded", String(next));
+    if (next) return;
+    input.removeAttribute("aria-activedescendant");
+    active = -1;
+    clearTimeout(faceTimer);
+    releasePreviewFaces(new Set());
+  }
+
+  function setActive(i) {
+    const prev = list.children[active];
+    if (prev) {
+      prev.classList.remove("on");
+      prev.setAttribute("aria-selected", "false");
+    }
+    active = i;
+    const next = list.children[i];
+    if (!next) return input.removeAttribute("aria-activedescendant");
+    next.classList.add("on");
+    next.setAttribute("aria-selected", "true");
+    input.setAttribute("aria-activedescendant", next.id);
+    next.scrollIntoView({ block: "nearest" });
+  }
+
+  function render(found, total, live) {
+    results = found;
+    list.innerHTML = "";
+    found.forEach((f, i) => {
+      const li = document.createElement("li");
+      li.id = `${inputId}-opt-${i}`;
+      li.className = "combo-opt";
+      li.setAttribute("role", "option");
+      li.setAttribute("aria-selected", "false");
+      li.dataset.family = f.family;
+      const fam = document.createElement("span");
+      fam.className = "combo-fam";
+      fam.textContent = f.family;
+      fam.style.fontFamily = fontStack(f.family, categoryGeneric(f.category));
+      const cat = document.createElement("span");
+      cat.className = "combo-cat";
+      cat.textContent = f.category ?? "";
+      li.append(fam, cat);
+      list.appendChild(li);
+    });
+
+    const notes = [];
+    if (found.length === 0) notes.push("No matching Google Font");
+    else if (total > found.length) notes.push(`showing ${found.length} of ${total} — keep typing`);
+    if (!live) notes.push("offline — showing bundled fonts");
+    meta.textContent = notes.join(" · ");
+    meta.hidden = notes.length === 0;
+
+    setActive(found.length ? 0 : -1);
+    scheduleFaces();
+  }
+
+  function scheduleFaces() {
+    clearTimeout(faceTimer);
+    faceTimer = setTimeout(loadVisibleFaces, FACE_SETTLE_MS);
+  }
+
+  /** Only rows currently on screen get a typeface, and only once typing settles. */
+  function loadVisibleFaces() {
+    if (!open) return;
+    const box = list.getBoundingClientRect();
+    const keep = new Set();
+    for (const li of list.children) {
+      const r = li.getBoundingClientRect();
+      if (r.bottom > box.top && r.top < box.bottom) keep.add(li.dataset.family);
+    }
+    releasePreviewFaces(keep);
+    for (const family of keep) loadPreviewFace(family);
+  }
+
+  async function runSearch(q) {
+    const id = ++seq;
+    try {
+      const { results: found, total, live } = await searchFontsApi(q);
+      if (id !== seq) return; // superseded
+      render(found, total, live);
+    } catch {
+      if (id !== seq) return;
+      render([], 0, true);
+      meta.textContent = "Font search unavailable";
+      meta.hidden = false;
+    }
+  }
+
+  function queueSearch(q) {
+    clearTimeout(timer);
+    timer = setTimeout(() => { timer = null; pending = runSearch(q); }, FONT_DEBOUNCE_MS);
+  }
+
+  /** Run any debounced search now — a blur must not validate against stale results. */
+  async function flush() {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+      pending = runSearch(input.value.trim());
+    }
+    if (pending) await pending;
+  }
+
+  function commit(family) {
+    const name = String(family ?? "").trim();
+    if (!isSafeFamily(name)) return revert(`“${name}” isn't a usable font name.`);
+    committed = name;
+    rememberFamily(name);
+    input.value = name;
+    state.fonts[key] = name;
+    loadFontFace(name);
+    setOpen(false);
+    renderPreview();
+  }
+
+  function revert(msg) {
+    input.value = committed;
+    setOpen(false);
+    if (!msg) return;
+    setStatus(msg, "err");
+    toast(msg);
+  }
+
+  /** Never apply a family that isn't in the catalog — it would 404 into serif. */
+  async function validate() {
+    const typed = input.value.trim();
+    if (!typed || typed === committed) return revert(null);
+    await flush();
+    const canonical = knownFamilies.get(typed.toLowerCase());
+    if (canonical) commit(canonical);
+    else revert(`No Google Font called “${typed}” — kept ${committed}.`);
+  }
+
+  input.addEventListener("focus", () => {
+    setOpen(true);
+    input.select();
+    pending = runSearch(input.value.trim());
+    pop.scrollIntoView({ block: "nearest" });
+  });
+
+  input.addEventListener("input", () => {
+    if (!open) setOpen(true);
+    queueSearch(input.value.trim());
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) {
+        setOpen(true);
+        pending = runSearch(input.value.trim());
+        return;
+      }
+      if (!results.length) return;
+      const dir = e.key === "ArrowDown" ? 1 : -1;
+      setActive((active + dir + results.length) % results.length);
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (open && results[active]) commit(results[active].family);
+      else validate();
+      return;
+    }
+    if (e.key === "Escape") {
+      if (open) e.stopPropagation();
+      input.value = committed;
+      setOpen(false);
+      return;
+    }
+    if (e.key === "Tab" && open && results[active] && input.value.trim() !== committed) {
+      commit(results[active].family);
+    }
+  });
+
+  input.addEventListener("blur", () => {
+    if (open || input.value.trim() !== committed) validate();
+  });
+
+  // keep focus on the input so blur-validation never races a row click
+  list.addEventListener("mousedown", (e) => e.preventDefault());
+  list.addEventListener("click", (e) => {
+    const li = e.target.closest(".combo-opt");
+    if (li) commit(li.dataset.family);
+  });
+  list.addEventListener("scroll", scheduleFaces, { passive: true });
+
+  return {
+    /** Adopt a value chosen elsewhere (a look, a loaded system) as the valid one. */
+    setValue(family) {
+      const name = String(family ?? "").trim();
+      committed = name;
+      input.value = name;
+      rememberFamily(name);
+    },
+  };
+}
+
+const fontCombos = {};
 
 /* ---------- controls ---------- */
 
@@ -293,7 +689,7 @@ function renderLooks() {
     frame.style.background = sem.background;
     frame.style.color = sem.text;
     frame.innerHTML =
-      `<div class="lc-head" style="font-family:'${look.fonts.heading}',serif">Design, done</div>` +
+      `<div class="lc-head">Design, done</div>` +
       `<div class="lc-lines"><i></i><i></i></div>` +
       `<div class="lc-row"><span class="lc-btn" style="--lc-btn:${c.primary["600"]}">Get started</span>` +
       `<span class="lc-chip" style="color:${c.accent["500"]}">${look.label.split(" ")[0]}</span></div>`;
@@ -310,12 +706,40 @@ function renderLooks() {
     name.className = "lc-name";
     name.textContent = look.label + (look.darkDefault ? "  ☾" : "");
 
+    frame.querySelector(".lc-head").style.fontFamily = fontStack(look.fonts.heading, "serif");
+
     card.append(frame, strip, name);
     card.onclick = () => applyLook(look);
     host.appendChild(card);
 
-    applyFont(look.fonts.heading, "gfl-" + slugify(look.fonts.heading));
+    observeLookFont(card, look.fonts.heading);
   }
+}
+
+/**
+ * Look cards used to request a webfont each, on every render — dozens of parallel
+ * Google Fonts requests on load and on every theme switch. Now a card's face is
+ * fetched only once it is actually scrolled into view, and only once per family.
+ */
+let lookFontObserver = null;
+
+function observeLookFont(card, family) {
+  if (!isSafeFamily(family) || loadedFaces.has(family.trim())) return;
+  if (!("IntersectionObserver" in window)) return loadFontFace(family);
+  if (!lookFontObserver) {
+    lookFontObserver = new IntersectionObserver(
+      (entries, obs) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          loadFontFace(e.target.dataset.font);
+          obs.unobserve(e.target);
+        }
+      },
+      { rootMargin: "150px" }
+    );
+  }
+  card.dataset.font = family.trim();
+  lookFontObserver.observe(card);
 }
 
 function renderVibes() {
@@ -389,9 +813,9 @@ function syncControls() {
   $("sysname").value = state.name;
   $("hue").value = state.hue;
   $("harmony").value = state.harmony;
-  $("fHeading").value = state.fonts.heading;
-  $("fBody").value = state.fonts.body;
-  $("fMono").value = state.fonts.mono;
+  fontCombos.heading.setValue(state.fonts.heading);
+  fontCombos.body.setValue(state.fonts.body);
+  fontCombos.mono.setValue(state.fonts.mono);
   $("ratio").value = String(state.ratio);
   document.querySelectorAll("#tintRow button").forEach((b) =>
     b.classList.toggle("on", b.dataset.tint === state.tint));
@@ -460,15 +884,8 @@ async function init() {
     ratioSel.appendChild(o);
   }
 
-  try {
-    const { results } = await api("/api/fonts?q=");
-    const dl = $("fontList");
-    for (const f of results) {
-      const o = document.createElement("option");
-      o.value = f.family;
-      dl.appendChild(o);
-    }
-  } catch {}
+  // warm the server-side catalog so the first font search is instant
+  searchFontsApi("").catch(() => {});
 
   const params = new URLSearchParams(location.search);
   const loadName = params.get("load");
@@ -520,10 +937,21 @@ function ratioLabel(r) {
 }
 
 /* events */
+for (const [id, key] of [["fHeading", "heading"], ["fBody", "body"], ["fMono", "mono"]])
+  fontCombos[key] = createFontCombo(id, key);
+
+$("ramps").addEventListener("click", (e) => {
+  const hex = e.target.closest(".swatch")?.dataset.hex;
+  if (!hex) return;
+  navigator.clipboard?.writeText(hex);
+  toast(`${hex} copied`);
+});
+
 $("hue").addEventListener("input", (e) => {
   state.hue = Number(e.target.value);
+  $("hueVal").textContent = `${state.hue}°`; // readout stays instant; the fetch coalesces
   state.accentExact = false; // slider takes over — rotate hue, keep vibe's L/C character
-  refreshPalette();
+  schedulePaletteRefresh();
 });
 $("harmony").addEventListener("change", (e) => {
   state.harmony = e.target.value;
@@ -585,14 +1013,6 @@ $("shuffle").onclick = async () => {
 document.querySelectorAll("#tintRow button").forEach((b) => {
   b.onclick = () => { state.tint = b.dataset.tint; syncControls(); refreshPalette(); };
 });
-for (const [id, key] of [["fHeading", "heading"], ["fBody", "body"], ["fMono", "mono"]]) {
-  $(id).addEventListener("change", (e) => {
-    const v = e.target.value.trim();
-    if (!v) return;
-    state.fonts[key] = v;
-    renderPreview();
-  });
-}
 document.querySelectorAll("#modeRow button").forEach((b) => {
   b.onclick = () => { state.mode = b.dataset.mode; renderPreview(); };
 });
