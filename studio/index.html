@@ -68,12 +68,37 @@
 
     <section class="group">
       <label class="group-label" for="fHeading">Heading font</label>
-      <input id="fHeading" list="fontList" placeholder="Search Google Fonts…">
+      <div class="combo">
+        <input id="fHeading" type="text" role="combobox" aria-expanded="false" aria-controls="fHeadingList"
+               aria-autocomplete="list" aria-haspopup="listbox" autocomplete="off" spellcheck="false"
+               placeholder="Search Google Fonts…">
+        <div class="combo-pop" id="fHeadingPop" hidden>
+          <ul class="combo-list" id="fHeadingList" role="listbox" aria-label="Heading font results"></ul>
+          <div class="combo-meta" id="fHeadingMeta" hidden></div>
+        </div>
+      </div>
+
       <label class="group-label" for="fBody">Body font</label>
-      <input id="fBody" list="fontList" placeholder="Search Google Fonts…">
+      <div class="combo">
+        <input id="fBody" type="text" role="combobox" aria-expanded="false" aria-controls="fBodyList"
+               aria-autocomplete="list" aria-haspopup="listbox" autocomplete="off" spellcheck="false"
+               placeholder="Search Google Fonts…">
+        <div class="combo-pop" id="fBodyPop" hidden>
+          <ul class="combo-list" id="fBodyList" role="listbox" aria-label="Body font results"></ul>
+          <div class="combo-meta" id="fBodyMeta" hidden></div>
+        </div>
+      </div>
+
       <label class="group-label" for="fMono">Mono font</label>
-      <input id="fMono" list="fontList" placeholder="Search Google Fonts…">
-      <datalist id="fontList"></datalist>
+      <div class="combo">
+        <input id="fMono" type="text" role="combobox" aria-expanded="false" aria-controls="fMonoList"
+               aria-autocomplete="list" aria-haspopup="listbox" autocomplete="off" spellcheck="false"
+               placeholder="Search Google Fonts…">
+        <div class="combo-pop" id="fMonoPop" hidden>
+          <ul class="combo-list" id="fMonoList" role="listbox" aria-label="Mono font results"></ul>
+          <div class="combo-meta" id="fMonoMeta" hidden></div>
+        </div>
+      </div>
     </section>
 
     <section class="group">

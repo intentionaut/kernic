@@ -111,6 +111,38 @@ input:focus, select:focus { border-color: var(--ui-accent); }
 
 input[type="range"] { width: 100%; accent-color: var(--ui-accent); }
 
+/* ---------- font combobox ---------- */
+.combo { position: relative; }
+.combo-pop {
+  position: absolute; z-index: 20;
+  left: 0; right: 0; top: calc(100% + 4px);
+  background: var(--ui-panel2);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  box-shadow: 0 14px 34px -12px rgba(0,0,0,.75);
+  overflow: hidden;
+}
+.combo-list { list-style: none; margin: 0; padding: 4px; max-height: 218px; overflow-y: auto; }
+.combo-list::-webkit-scrollbar { width: 8px; }
+.combo-list::-webkit-scrollbar-thumb { background: var(--ui-border); border-radius: 4px; }
+.combo-opt {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  padding: 5px 8px; border-radius: 6px; cursor: pointer;
+  font-size: 13.5px; line-height: 1.4;
+}
+.combo-opt:hover { background: color-mix(in srgb, var(--ui-accent) 26%, transparent); }
+.combo-opt.on { background: var(--ui-accent); color: #fff; }
+.combo-fam { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.combo-cat {
+  flex: none; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--ui-dim);
+}
+.combo-opt.on .combo-cat { color: rgba(255,255,255,.8); }
+.combo-meta {
+  padding: 5px 9px; font-size: 10.5px; color: var(--ui-dim);
+  border-top: 1px solid var(--ui-border);
+}
+
 .chip-row { display: flex; flex-wrap: wrap; gap: 5px; }
 .chip {
   border: 1px solid var(--ui-border);
