@@ -1,7 +1,10 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { fontImportUrl } from "./fonts.ts";
 import type { DesignSystem } from "./types.ts";
+
+// This module holds only the pure builders. The code that puts these artifacts
+// on disk lives in export.ts, next to the other renderers, so there is exactly
+// one place that maps a format to a filename. Keeping the dependency pointing
+// one way (export.ts -> context.ts) avoids an import cycle.
 
 const SCALE_NAMES = ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl", "5xl"];
 const SCALE_EXPS = [-1, -0.5, 0, 1, 2, 3, 5, 7, 9];
@@ -92,6 +95,24 @@ export function designBrief(ds: DesignSystem): string {
   ].join("\n");
 }
 
+/**
+ * The rule a user pastes into CLAUDE.md / AGENTS.md / .cursorrules so the agent
+ * actually reads the system. Single source for this copy: `kernic context`
+ * prints the lines, the MCP apply_to_project tool returns the one-liner, and
+ * neither can drift away from the other.
+ */
+export function agentRuleLines(ds: DesignSystem, briefPath = "./design.md"): string[] {
+  return [
+    `Visual design: follow ${briefPath} exactly (${ds.name}, vibe: ${ds.vibe}).`,
+    "Use only its color, type, and radius tokens — never invent raw hex values.",
+  ];
+}
+
+/** The same rule as one pasteable line. */
+export function agentRule(ds: DesignSystem, briefPath = "./design.md"): string {
+  return agentRuleLines(ds, briefPath).join(" ");
+}
+
 /** W3C Design Tokens (DTCG-style, stable 2025.10 semantics): $type/$value groups. */
 export function dtcgTokens(ds: DesignSystem): string {
   const colorToken = (hex: string) => ({ $type: "color", $value: hex });
@@ -141,20 +162,4 @@ export function dtcgTokens(ds: DesignSystem): string {
     null,
     2
   ) + "\n";
-}
-
-/** Write design.md + tokens.json into outDir. Returns written paths. */
-export async function writeContext(ds: DesignSystem, outDir: string): Promise<string[]> {
-  await mkdir(outDir, { recursive: true });
-  const files: [string, string][] = [
-    ["design.md", designBrief(ds)],
-    ["tokens.json", dtcgTokens(ds)],
-  ];
-  const written: string[] = [];
-  for (const [file, content] of files) {
-    const path = join(outDir, file);
-    await writeFile(path, content, "utf8");
-    written.push(path);
-  }
-  return written;
 }

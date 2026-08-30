@@ -1,22 +1,72 @@
 #!/usr/bin/env node
-import { mkdir, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { Command } from "commander";
 import * as p from "@clack/prompts";
 import { buildFromVibe } from "./build.ts";
-import { exportCss, exportFonts, exportTailwind } from "./export.ts";
+import { agentRuleLines } from "./context.ts";
+import {
+  FORMAT_LIST,
+  contextArtifacts,
+  exportArtifacts,
+  planArtifacts,
+  renderExport,
+  writeArtifacts,
+  type Artifact,
+} from "./export.ts";
 import { getFontCatalog } from "./fonts.ts";
+import {
+  checkProjects,
+  claimNotice,
+  driftFingerprint,
+  driftNote,
+  multiProjectFingerprint,
+  multiProjectNote,
+  muteNotices,
+  recordApplication,
+  type ProjectStatus,
+} from "./projects.ts";
 import { renderPalette } from "./swatch.ts";
 import { deleteSystem, listSystems, loadSystem, normalizeName, saveSystem } from "./storage.ts";
 import { VIBES } from "./vibes.ts";
 import { runWizard } from "./wizard.ts";
+
+/**
+ * Tell the user which of their own files kernic refused to overwrite. Silence
+ * here would be data loss: `tokens.json` is also Style Dictionary's and Tokens
+ * Studio's filename, so a project can easily already own one.
+ */
+function reportBlocked(blocked: readonly string[]): void {
+  if (blocked.length === 0) return;
+  p.log.warn(
+    `Left alone — kernic did not write ${blocked.length === 1 ? "this file" : "these files"}: ${blocked.join(", ")}\n` +
+      "Move or rename them first, or pass --force to replace them."
+  );
+}
+
+/** Print an error and stop. Typed `never` so callers narrow correctly after it. */
+function fail(message: string): never {
+  p.log.error(message);
+  process.exit(1);
+}
+
+/** The version actually installed, rather than a literal that goes stale on every release. */
+function packageVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version?: unknown };
+    if (typeof pkg.version === "string" && pkg.version.length > 0) return pkg.version;
+  } catch {
+    /* fall through */
+  }
+  return "0.0.0";
+}
 
 const program = new Command();
 
 program
   .name("kernic")
   .description("Kern your whole app: a polished design system: palettes, Google Fonts, vibes. Export CSS vars, Tailwind v4, JSON tokens.")
-  .version("0.1.0");
+  .version(packageVersion());
 
 // Default action = Studio (the visual editor)
 program.action(async () => {
@@ -128,57 +178,38 @@ program
   .command("export")
   .description("Export a design system (stdout by default)")
   .argument("<name>")
-  .option("-f, --format <format>", "css | tailwind | json | fonts | all", "css")
+  .option("-f, --format <format>", FORMAT_LIST, "css")
   .option("-o, --out <dir>", "write to files in this directory instead of stdout")
-  .action(async (name: string, opts: { format: string; out?: string }) => {
+  .option("--force", "replace files in that directory even if kernic did not write them")
+  .action(async (name: string, opts: { format: string; out?: string; force?: boolean }) => {
     const ds = await loadSystem(name);
-    if (!ds) {
-      p.log.error(`Not found: "${name}". Try \`kernic list\`.`);
-      process.exit(1);
-    }
-
-    const formats: Record<string, () => string> = {
-      css: () => exportCss(ds),
-      tailwind: () => exportTailwind(ds),
-      json: () => JSON.stringify(ds, null, 2),
-      fonts: () => exportFonts(ds),
-    };
+    if (!ds) fail(`Not found: "${name}". Try \`kernic list\`.`);
 
     if (opts.format === "all" && !opts.out) {
-      p.log.error("--format all writes multiple files; pass -o <dir> (e.g. -o ./design-system)");
-      process.exit(1);
+      fail("--format all writes multiple files; pass -o <dir> (e.g. -o ./design-system)");
     }
 
     if (!opts.out) {
-      const gen = formats[opts.format];
-      if (!gen) {
-        p.log.error(`Unknown format "${opts.format}". Use css | tailwind | json | fonts | all.`);
-        process.exit(1);
+      let out: string;
+      try {
+        out = renderExport(ds, opts.format);
+      } catch (err: any) {
+        fail(err?.message ?? String(err));
       }
-      process.stdout.write(gen());
+      process.stdout.write(out);
       return;
     }
 
-    // Write files
-    const dir = resolve(opts.out);
-    await mkdir(dir, { recursive: true });
-    const files: [string, string][] =
-      opts.format === "all"
-        ? [
-            ["tokens.css", exportCss(ds)],
-            ["tailwind.css", exportTailwind(ds)],
-            ["tokens.json", JSON.stringify(ds, null, 2)],
-            ["fonts.html", exportFonts(ds)],
-          ]
-        : [[
-            { css: "tokens.css", tailwind: "tailwind.css", json: "tokens.json", fonts: "fonts.html" }[opts.format] ??
-              (() => { p.log.error(`Unknown format "${opts.format}".`); process.exit(1); })(),
-            (formats[opts.format] ?? (() => ""))(),
-          ]];
-    for (const [file, content] of files) {
-      await writeFile(join(dir, file), content, "utf8");
-      p.log.step(`Wrote ${join(dir, file)}`);
+    let artifacts: Artifact[];
+    try {
+      artifacts = exportArtifacts(ds, opts.format);
+    } catch (err: any) {
+      fail(err?.message ?? String(err));
     }
+    const dir = resolve(opts.out);
+    const plan = await planArtifacts(dir, artifacts, { force: opts.force });
+    for (const path of await writeArtifacts(dir, plan.toWrite)) p.log.step(`Wrote ${path}`);
+    reportBlocked(plan.blocked);
   });
 
 program
@@ -217,28 +248,111 @@ program
   .description("Write agent-readable design context (design.md + W3C tokens.json) into a project")
   .argument("<name>")
   .option("-o, --out <dir>", "target directory", ".")
-  .action(async (name: string, opts: { out: string }) => {
+  .option("--force", "replace files in that directory even if kernic did not write them")
+  .action(async (name: string, opts: { out: string; force?: boolean }) => {
     const ds = await loadSystem(name);
-    if (!ds) {
-      p.log.error(`Not found: "${name}". Try \`kernic list\`.`);
-      process.exit(1);
-    }
-    const { writeContext } = await import("./context.ts");
-    const written = await writeContext(ds, resolve(opts.out));
-    for (const file of written) p.log.step(`Wrote ${file}`);
+    if (!ds) fail(`Not found: "${name}". Try \`kernic list\`.`);
+
+    // Same shared code path the MCP apply_to_project tool uses, so the two can
+    // never write a different set of files.
+    const dir = resolve(opts.out);
+    const plan = await planArtifacts(dir, contextArtifacts(ds), { force: opts.force });
+    const artifacts = plan.toWrite;
+    for (const file of await writeArtifacts(dir, artifacts)) p.log.step(`Wrote ${file}`);
+    reportBlocked(plan.blocked);
+
     p.note(
       [
         "Point your AI agent at it:",
         "",
         "  # AGENTS.md / CLAUDE.md / .cursorrules",
-        `  Visual design: follow ./design.md exactly (${ds.name}, vibe: ${ds.vibe}).`,
-        "  Use only its color, type, and radius tokens — never invent raw hex values.",
+        ...agentRuleLines(ds).map((line) => `  ${line}`),
         "",
         "  # or let agents read it live via MCP:",
         "  claude mcp add kernic -- npx kernic mcp",
       ].join("\n"),
       "Design context ready"
     );
+
+    const applied = await recordApplication({ projectPath: dir, system: ds.name, artifacts });
+    if (applied.isNewProject && applied.projectCount >= 2) {
+      if (await claimNotice(multiProjectFingerprint(applied.projectCount))) {
+        p.log.message(multiProjectNote(applied.projectCount, ds.name));
+      }
+    }
+  });
+
+program
+  .command("apps")
+  .description("Your design systems across every project you've applied them to, and what's fallen behind")
+  .option("--mute", "stop showing the note about holding one identity across apps")
+  .action(async (opts: { mute?: boolean }) => {
+    if (opts.mute) {
+      await muteNotices();
+      p.log.message("Won't mention that again. (KERNIC_NO_UPSELL=1 does the same for one shell.)");
+      return;
+    }
+
+    const statuses = await checkProjects();
+    if (statuses.length === 0) {
+      p.intro("kernic apps");
+      p.log.message(
+        [
+          "No projects yet.",
+          "",
+          "  kernic context <name> -o ./my-app    # writes design.md + tokens.json there",
+          "",
+          "Anything you apply a system to shows up here.",
+        ].join("\n")
+      );
+      return;
+    }
+
+    const bySystem = new Map<string, ProjectStatus[]>();
+    for (const status of statuses) {
+      const list = bySystem.get(status.record.system) ?? [];
+      list.push(status);
+      bySystem.set(status.record.system, list);
+    }
+
+    const appCount = new Set(statuses.map((s) => s.record.path)).size;
+    p.intro(
+      `Your design across ${appCount} ${appCount === 1 ? "app" : "apps"} · ${bySystem.size} ${bySystem.size === 1 ? "system" : "systems"}`
+    );
+
+    const label: Record<ProjectStatus["state"], string> = {
+      current: "matches the system",
+      stale: "older version of the system",
+      "system-missing": "system no longer saved",
+      unreachable: "folder not reachable right now",
+    };
+
+    for (const [system, group] of bySystem) {
+      const lines = [`${system} — ${group.length} ${group.length === 1 ? "app" : "apps"}`];
+      for (const status of group) {
+        const mark = status.state === "current" ? "·" : "→";
+        lines.push(
+          `  ${mark} ${status.record.path}`,
+          `      applied ${status.record.appliedAt.slice(0, 10)} — ${label[status.state]}`
+        );
+      }
+      p.log.message(lines.join("\n"));
+    }
+
+    const stale = statuses.filter((s) => s.state === "stale");
+    if (stale.length === 0) {
+      p.outro("Everything matches its system.");
+      return;
+    }
+
+    // The manual path is the free path, and it should be excellent: every
+    // command needed is on screen, ready to paste, in order.
+    p.note(stale.flatMap((s) => s.fix).join("\n"), "Bring these back in line");
+
+    if (await claimNotice(driftFingerprint(stale))) {
+      p.log.message(driftNote(stale.length));
+    }
+    p.outro(`${stale.length} of ${appCount} apps out of date.`);
   });
 
 program
