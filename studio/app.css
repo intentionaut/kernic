@@ -582,3 +582,103 @@ input[type="range"] { width: 100%; accent-color: var(--ui-accent); }
   box-shadow: 0 10px 26px -16px color-mix(in srgb, var(--color-primary-700) 55%, transparent);
 }
 #preview[data-vibe="earthy"] .pv-h1 { font-weight: 500; }
+
+/* ---------- narrow screens (phone, or the site embed on one) ----------
+   The desktop layout is a fixed two-pane grid; at phone width that crushed
+   the preview clean off the page. Stack instead: controls on top, scrolling
+   in their own half, live preview below in the other. */
+@media (max-width: 720px) {
+  #app {
+    grid-template-columns: minmax(0, 1fr);
+    /* The preview is the point: it shows a whole website, so give it the
+       room. The controls collapse to a scrolling strip above it. */
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr);
+  }
+  #sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--ui-border);
+    max-height: 26vh;
+  }
+  /* Everything that is not the website itself gets out of the way. The ramps
+     are a detail you can read on a desktop; on a phone they cost a third of
+     the preview. */
+  #ramps {
+    display: none;
+  }
+  #previewBar {
+    padding: 8px 12px;
+  }
+  #preview {
+    margin: 8px;
+  }
+  /* Tighten the strip so more of it is visible before scrolling. */
+  .side-head {
+    padding: 10px 14px;
+  }
+  .group {
+    padding: 9px 14px 3px;
+  }
+  #looksGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  /* The looks cards are a nicety on a phone; the theme chips do the work. */
+  #looksSection {
+    display: none;
+  }
+  #historySection {
+    display: none;
+  }
+
+  /* The preview renders a mock desktop site. At phone width its padding and
+     two-column bands overflow, so tighten them rather than letting the
+     content run off the edge. */
+  .pv-nav,
+  .pv-hero,
+  .pv-section,
+  .pv-stats-band {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .pv-hero {
+    padding-top: 26px;
+    padding-bottom: 24px;
+  }
+  /* The hero type is sized for a desktop canvas. Left alone it fills the whole
+     phone preview with four words, so you cannot see that it is a website. */
+  .pv-h1 {
+    font-size: calc(var(--text-2xl) * 0.95);
+    margin-bottom: 10px;
+  }
+  .pv-sub {
+    font-size: var(--text-sm);
+  }
+  .pv-nav {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pv-links {
+    gap: 12px;
+  }
+  .pv-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .pv-stats-band {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .pv-stat {
+    flex: 1 1 44%;
+    padding-left: 14px;
+  }
+  /* Multi-column bands: one column at phone width. Measured offenders were
+     .pv-cards (419px) and .pv-pricing (467px) inside a 326px pane. */
+  .pv-cards,
+  .pv-pricing {
+    grid-template-columns: 1fr;
+  }
+  /* Ramp swatches are flex:1 but will not shrink past their label. */
+  .swatch {
+    min-width: 0;
+  }
+}
