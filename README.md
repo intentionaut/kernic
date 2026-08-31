@@ -173,7 +173,7 @@ Layout: `src/color.ts` (OKLCH engine) · `src/vibes.ts` (presets) · `src/studio
 
 ## Author
 
-Built by [Saielle DaSilva](https://intentionaut.com/?utm_source=github.com&utm_medium=readme&utm_campaign=kernic). The story behind Kernic, how it works and what it refuses to do: [intentionaut.com/open-source/kernic](https://intentionaut.com/open-source/kernic/?utm_source=github.com&utm_medium=readme&utm_campaign=kernic). More open source at [intentionaut.com/open-source](https://intentionaut.com/open-source/?utm_source=github.com&utm_medium=readme&utm_campaign=kernic).
+Built in public; the build stories land first in [Intentionaut](https://intentionaut.com/subscribe/?utm_source=github-kernic). Built by [Saielle DaSilva](https://intentionaut.com/?utm_source=github.com&utm_medium=readme&utm_campaign=kernic). The story behind Kernic, how it works and what it refuses to do: [intentionaut.com/open-source/kernic](https://intentionaut.com/open-source/kernic/?utm_source=github.com&utm_medium=readme&utm_campaign=kernic). More open source at [intentionaut.com/open-source](https://intentionaut.com/open-source/?utm_source=github.com&utm_medium=readme&utm_campaign=kernic).
 
 ## Contributing
 
