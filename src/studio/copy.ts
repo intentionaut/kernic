@@ -51,7 +51,7 @@ export const PREVIEW_COPY: Record<string, PreviewCopy> = {
     navCta: "Tune in",
     h1: "Broadcasting from the ",
     h1Accent: "golden hour.",
-    sub: "Warm signals, vinyl crackle and late-night frequencies — straight to your room.",
+    sub: "Warm signals, vinyl crackle and late-night frequencies, straight to your room.",
     primaryCta: "Tune in live",
     ghostCta: "Browse the archives",
     cards: [
@@ -89,7 +89,7 @@ export const PREVIEW_COPY: Record<string, PreviewCopy> = {
     navCta: "Contact us",
     h1: "Clarity for ",
     h1Accent: "complex decisions.",
-    sub: "Advisory built on forty years of steady judgment — measured, compliant, delivered.",
+    sub: "Advisory built on forty years of steady judgment. Measured, compliant, delivered.",
     primaryCta: "Book a consultation",
     ghostCta: "Our approach",
     cards: [
@@ -108,7 +108,7 @@ export const PREVIEW_COPY: Record<string, PreviewCopy> = {
     navCta: "Sign in",
     h1: "Money that moves at ",
     h1Accent: "light speed.",
-    sub: "One API for instant global payouts — built for tomorrow's banks.",
+    sub: "One API for instant global payouts, built for tomorrow's banks.",
     primaryCta: "Start building",
     ghostCta: "View pricing",
     cards: [
@@ -165,7 +165,7 @@ export const PREVIEW_COPY: Record<string, PreviewCopy> = {
     navCta: "Order now",
     h1: "Pizza night, but ",
     h1Accent: "a whole party.",
-    sub: "Hot, fast and ridiculously cheesy — delivered with extra confetti.",
+    sub: "Hot, fast and ridiculously cheesy, delivered with extra confetti.",
     primaryCta: "Order now",
     ghostCta: "See the deals",
     cards: [
@@ -184,7 +184,7 @@ export const PREVIEW_COPY: Record<string, PreviewCopy> = {
     navCta: "Say hello",
     h1: "Grown slowly, ",
     h1Accent: "delivered honestly.",
-    sub: "Seasonal boxes from soil we know by name — vegetables, herbs and small joys.",
+    sub: "Seasonal boxes from soil we know by name. Vegetables, herbs and small joys.",
     primaryCta: "This week's box",
     ghostCta: "Meet the farm",
     cards: [

@@ -687,3 +687,146 @@ input[type="range"] { width: 100%; accent-color: var(--ui-accent); }
     min-width: 0;
   }
 }
+
+/* ---------- sidebar foot row ---------- */
+.foot-row {
+  display: flex;
+  gap: 6px;
+}
+.foot-row .btn { flex: 1; min-width: 0; }
+
+/* ---------- export dropdown ---------- */
+.export-wrap { position: relative; flex: 1; min-width: 0; }
+.export-dropdown {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+.export-dropdown.open { display: block; }
+.export-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  background: none;
+  color: var(--ui-text);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.export-dropdown button:hover { background: var(--ui-surface); }
+
+/* ---------- import modal ---------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  padding: 20px;
+  width: min(480px, 90vw);
+  max-height: 80vh;
+  overflow: auto;
+}
+.modal h3 { margin: 0 0 4px; font-size: 15px; color: var(--ui-text); }
+.modal-desc { margin: 0 0 12px; font-size: 12px; color: var(--ui-muted); }
+.modal textarea {
+  width: 100%;
+  min-height: 160px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  padding: 10px;
+  font: 12px/1.5 var(--font-mono, monospace);
+  resize: vertical;
+}
+.modal textarea:focus { outline: none; border-color: var(--ui-accent); }
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* ---------- contrast indicator ---------- */
+.contrast-indicator {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.contrast-indicator.pass {
+  color: #16a34a;
+  background: rgba(22,163,74,.12);
+}
+.contrast-indicator.fail {
+  color: #dc2626;
+  background: rgba(220,38,38,.12);
+}
+
+/* ---------- phone viewport frame ---------- */
+#preview.phone {
+  width: 390px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 36px;
+  border: 3px solid #1b1b1f;
+  box-shadow: 0 0 0 6px #333, 0 16px 48px rgba(0,0,0,.35);
+  overflow: hidden;
+  max-height: 844px;
+  overflow-y: auto;
+}
+#preview.phone::before {
+  content: "";
+  display: block;
+  width: 120px;
+  height: 28px;
+  background: #1b1b1f;
+  border-radius: 0 0 16px 16px;
+  margin: 0 auto;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* At 390px the preview is a phone, so its chrome behaves like one:
+   the nav collapses to brand plus one action, the way a real site would. */
+#preview.phone .pv-nav { padding: 14px 18px; gap: 12px; }
+#preview.phone .pv-links { display: none; }
+#preview.phone .pv-brand { font-size: 15px; }
+#preview.phone .pv-hero { padding-left: 20px; padding-right: 20px; }
+#preview.phone .pv-section,
+#preview.phone .pv-form { padding-left: 20px; padding-right: 20px; }
+#preview.phone .pv-cards,
+#preview.phone .pv-pricing,
+#preview.phone .pv-grid-2 { grid-template-columns: 1fr; }
+#preview.phone .pv-stats-band { flex-wrap: wrap; gap: 16px; }
+#preview.phone .pv-footer { flex-direction: column; gap: 6px; text-align: center; }
+
+/* ---------- bar controls layout ---------- */
+.bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}

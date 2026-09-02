@@ -3,3 +3,6 @@
 integrity": "sha
 # OKLab / OKLCH matrix constants and other long decimal literals in src/color.ts
 [0-9]\.[0-9]{8,}
+# Studio preview form placeholders in src/studio/copy.ts (you@studio.dev and
+# friends). Synthetic placeholder text for a demo form, not addresses.
+you@[a-z0-9.-]+

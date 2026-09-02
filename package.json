@@ -1,6 +1,6 @@
 {
   "name": "kernic",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Kern your whole app — design systems from the terminal. Palette picker, Google Fonts, vibes; free forever CLI. Writes DESIGN.md, W3C design tokens, a shadcn theme, CSS vars and Tailwind v4.",
   "type": "module",
   "bin": {

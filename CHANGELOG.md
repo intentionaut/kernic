@@ -51,6 +51,40 @@ Hard rules. An entry that breaks one of them does not ship.
 
 ---
 
+## 0.3.1 (2026-09-02)
+
+Studio is where you decide what a system looks like. It now shows that system
+under the kind of site it is actually for, lets you bring one in and take one
+out, and keeps a check on it while you work.
+
+**What this gives you:**
+
+- **A preview that fits the system you are building.** Each vibe previews a
+  different kind of product, with its own brand, copy and section order. Retro
+  is a radio station, corporate is an advisory firm, neon is a payments API.
+  A palette that works on a pricing table and falls apart on an editorial page
+  now shows you both.
+
+- **Tokens out of Studio, in the format you need.** Export copies your system
+  to the clipboard as CSS variables, a Tailwind config or JSON, so you can put
+  it straight into a project without saving it first.
+
+- **Start from a system you already have.** Import takes CSS variables, a
+  `DESIGN.md` table or a saved kernic system, pasted in, and seeds Studio with
+  its colors, fonts and radius. Ramps and swatches redraw around what you
+  brought in.
+
+- **Undo and redo while you fine-tune.** Cmd+Z steps back through the hue
+  slider, harmony, tint, radius, type scale and font pickers, and Cmd+Shift+Z
+  returns. A drag of the hue slider is one step, not fifty.
+
+- **Contrast and phone width, checked as you go.** The preview bar shows the
+  WCAG ratio of your text on your background, green on a pass and red on a
+  fail, updated as you edit and as you switch between light and dark. Beside it,
+  a phone toggle renders the preview at 390px with a real mobile nav.
+
+---
+
 ## 0.3.0 (2026-09-02)
 
 A design system is more than colors and fonts. kernic now decides the rest as

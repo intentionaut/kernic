@@ -126,6 +126,7 @@ async function refreshPalette() {
   state.motion = result.motion ?? null;
   renderRamps();
   renderPreview();
+  updateContrastIndicator();
 }
 
 /** Structural signature of the ramp set — when it is unchanged we repaint in place. */
@@ -341,6 +342,96 @@ function renderPreview() {
     b.classList.toggle("on", b.dataset.mode === state.mode));
 }
 
+/* ---------- preview content: per-vibe section builders ---------- */
+
+/** Copy arrives from /api/meta (src/studio/copy.ts) and is interpolated into
+    innerHTML, so escape it rather than trusting the shape of a stored system. */
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function buildNavSection(copy) {
+  const links = (copy.links ?? []).map((l) => `<a>${esc(l)}</a>`).join("");
+  return `<nav class="pv-nav"><span class="pv-brand">${esc(copy.brand)}</span><span class="pv-links">${links}</span><button class="pv-btn pv-primary pv-sm">${esc(copy.navCta)}</button></nav>`;
+}
+
+function buildHeroSection(copy) {
+  return `<section class="pv-hero"><h1 class="pv-h1">${esc(copy.h1)}<span class="pv-grad-word">${esc(copy.h1Accent)}</span></h1><p class="pv-sub">${esc(copy.sub)}</p><div class="pv-row"><button class="pv-btn pv-primary">${esc(copy.primaryCta)}</button><button class="pv-btn pv-ghost">${esc(copy.ghostCta)}</button></div></section>`;
+}
+
+function buildStatsSection() {
+  const stats = [
+    { num: "99.98%", cap: "uptime SLA" },
+    { num: "12k", cap: "teams shipping" },
+    { num: "4.9\u2605", cap: "avg. rating" },
+    { num: "38ms", cap: "median latency" },
+  ];
+  return `<section class="pv-stats-band">${stats.map((x) => `<div class="pv-stat"><span class="pv-stat-num">${x.num}</span><span class="pv-stat-cap">${x.cap}</span></div>`).join("")}</section>`;
+}
+
+function buildCardsSection(copy) {
+  const cards = copy.cards ?? [];
+  return `<section class="pv-cards">${cards.map((c, i) => `<article class="pv-card"><div class="pv-thumb t${i + 1}"></div><h3>${esc(c.title)}</h3><p>${esc(c.body)}</p><span class="pv-chip">${esc(c.chip)}</span></article>`).join("")}</section>`;
+}
+
+function buildFormSection(copy) {
+  return `<section class="pv-form"><h2 class="pv-h2">${esc(copy.formHeading)}</h2><div class="pv-alert ok"><div><p class="pv-alert-title">Changes published</p><p class="pv-alert-body">Your update is live for every workspace member.</p></div></div><div class="pv-grid-2"><div class="pv-field"><label>Email</label><input type="text" placeholder="${esc(copy.emailPlaceholder)}"></div><div class="pv-field has-error"><label>Team name</label><input type="text" value="A"><p class="pv-error-msg">Must be at least 3 characters.</p></div></div><div class="pv-field"><label>Note</label><textarea rows="2"></textarea><p class="pv-hint">We'll only use this to follow up.</p></div><button class="pv-btn pv-primary">${esc(copy.formCta)}</button></section>`;
+}
+
+function buildPricingSection() {
+  return `<section class="pv-section"><p class="pv-label">Pricing</p><div class="pv-pricing"><article class="pv-tier"><h3>Hobby</h3><div class="pv-price">$0<span>/mo</span></div><ul><li>1 project</li><li>Community support</li><li>Basic analytics</li></ul><button class="pv-btn pv-ghost wide">Choose Hobby</button></article><article class="pv-tier featured"><span class="pv-flag">Most popular</span><h3>Studio</h3><div class="pv-price">$20<span>/mo</span></div><ul><li>Unlimited projects</li><li>Priority support</li><li>Advanced analytics</li></ul><button class="pv-btn pv-primary wide">Choose Studio</button></article><article class="pv-tier"><h3>Agency</h3><div class="pv-price">$79<span>/mo</span></div><ul><li>Client workspaces</li><li>Dedicated manager</li><li>SLA &amp; SSO</li></ul><button class="pv-btn pv-ghost wide">Choose Agency</button></article></div></section>`;
+}
+
+function buildTypeSection() {
+  return `<section class="pv-section"><p class="pv-label">Type hierarchy</p><div class="pv-type-row"><span class="pv-tag">H1</span><span class="t-h1">Ship software that looks intentional</span></div><div class="pv-type-row"><span class="pv-tag">H2</span><span class="t-h2">Team activity this week</span></div><div class="pv-type-row"><span class="pv-tag">H3</span><span class="t-h3">Overdue items need owners</span></div><div class="pv-type-row"><span class="pv-tag">Body</span><span class="t-body">You have four tasks due before Friday. Assign an owner to each one so nothing slips through the cracks.</span></div><div class="pv-type-row"><span class="pv-tag">Muted</span><span class="t-muted">Last synced 3 minutes ago from your connected workspace.</span></div><div class="pv-type-row"><span class="pv-tag">Caption</span><span class="t-caption">Updated automatically every 15 minutes</span></div><div class="pv-type-row"><span class="pv-tag">Overline</span><span class="t-overline">Sprint 14</span></div><div class="pv-type-row"><span class="pv-tag">Link</span><a class="t-link">View full changelog</a></div><div class="pv-type-row"><span class="pv-tag">Code</span><code class="t-code">const kerning = 0.02em;</code></div></section>`;
+}
+
+function buildInverseSection() {
+  return `<section class="pv-section"><p class="pv-label">Inverse surface</p><div class="pv-dark"><h4>Weekly digest</h4><p>A dark surface panel for contrast checks. Secondary copy sits at reduced opacity over the deepest neutral.</p><button class="pv-btn pv-accent">Open digest</button></div></section>`;
+}
+
+function buildFooterSection(copy) {
+  return `<footer class="pv-footer"><span>&copy; 2026 ${esc(copy.brand)}</span><span>Built with kernic</span></footer>`;
+}
+
+/* Keyed on the vibe ids in src/vibes.ts, which is what state.vibeId carries
+   (set from look.vibeId). These keys must match those ids exactly.
+   The stats band only appears where product metrics belong. */
+const PREVIEW_TEMPLATES = {
+  corporate: ["nav", "hero", "stats", "cards", "form", "pricing", "type", "inverse", "footer"],
+  tech: ["nav", "hero", "cards", "stats", "type", "inverse", "form", "footer"],
+  neon: ["nav", "hero", "stats", "pricing", "cards", "type", "footer"],
+  retro: ["nav", "hero", "cards", "type", "inverse", "footer"],
+  minimal: ["nav", "hero", "cards", "type", "footer"],
+  "soft-pastel": ["nav", "hero", "cards", "form", "type", "footer"],
+  fun: ["nav", "hero", "cards", "pricing", "type", "footer"],
+  earthy: ["nav", "hero", "cards", "form", "type", "footer"],
+};
+
+/** Server copy for the active vibe, falling back to the `default` entry. */
+function previewCopy() {
+  const all = state.meta?.copy ?? {};
+  return all[state.vibeId] ?? all.default ?? {};
+}
+
+const SECTION_BUILDERS = {
+  nav: () => buildNavSection(previewCopy()),
+  hero: () => buildHeroSection(previewCopy()),
+  stats: () => buildStatsSection(),
+  cards: () => buildCardsSection(previewCopy()),
+  form: () => buildFormSection(previewCopy()),
+  pricing: () => buildPricingSection(),
+  type: () => buildTypeSection(),
+  inverse: () => buildInverseSection(),
+  footer: () => buildFooterSection(previewCopy()),
+};
+
+function renderPreviewContent() {
+  const pv = $("preview");
+  const sections = PREVIEW_TEMPLATES[state.vibeId] ?? PREVIEW_TEMPLATES.corporate;
+  pv.innerHTML = sections.map(s => SECTION_BUILDERS[s]()).join("");
+}
+
 /* ---------- font search combobox ---------- */
 
 const FONT_LIMIT = 24;
@@ -431,8 +522,8 @@ function createFontCombo(inputId, key) {
 
     const notes = [];
     if (found.length === 0) notes.push("No matching Google Font");
-    else if (total > found.length) notes.push(`showing ${found.length} of ${total} — keep typing`);
-    if (!live) notes.push("offline — showing bundled fonts");
+    else if (total > found.length) notes.push(`showing ${found.length} of ${total}, keep typing`);
+    if (!live) notes.push("offline, showing bundled fonts");
     meta.textContent = notes.join(" · ");
     meta.hidden = notes.length === 0;
 
@@ -490,6 +581,7 @@ function createFontCombo(inputId, key) {
   function commit(family) {
     const name = String(family ?? "").trim();
     if (!isSafeFamily(name)) return revert(`“${name}” isn't a usable font name.`);
+    pushUndo();
     committed = name;
     rememberFamily(name);
     input.value = name;
@@ -514,7 +606,7 @@ function createFontCombo(inputId, key) {
     await flush();
     const canonical = knownFamilies.get(typed.toLowerCase());
     if (canonical) commit(canonical);
-    else revert(`No Google Font called “${typed}” — kept ${committed}.`);
+    else revert(`No Google Font called “${typed}”. Kept ${committed}.`);
   }
 
   input.addEventListener("focus", () => {
@@ -623,6 +715,8 @@ function restoreSnapshot(snap) {
   syncControls();
   renderRamps();
   renderPreview();
+  renderPreviewContent();
+  updateContrastIndicator();
   renderVibes();
   renderLooks();
   markActiveLook();
@@ -673,6 +767,7 @@ function applyLook(look) {
   if (!state.name.trim()) state.name = slugify(look.label);
   syncControls();
   refreshPalette();
+  renderPreviewContent();
   markActiveLook();
   renderVibes();
   renderLooks();
@@ -791,7 +886,7 @@ function applyVibe(v) {
   state.radiusStyle = v.radius;
   state.ratio = v.typeRatio;
   syncControls();
-  refreshPalette().then(renderVibes);
+  refreshPalette().then(() => { renderVibes(); renderPreviewContent(); });
 }
 
 // approximate hue from hex via HSL (client-side display only)
@@ -815,7 +910,7 @@ function renderRadiusRow() {
     const b = document.createElement("button");
     b.textContent = key[0].toUpperCase() + key.slice(1);
     b.classList.toggle("on", state.radiusStyle === key);
-    b.onclick = () => { state.radiusStyle = key; renderRadiusRow(); renderPreview(); };
+    b.onclick = () => { pushUndo(); state.radiusStyle = key; renderRadiusRow(); renderPreview(); };
     host.appendChild(b);
   }
 }
@@ -869,7 +964,7 @@ async function save() {
       body: JSON.stringify(buildSystemPayload()),
     });
     state.name = name;
-    setStatus(`Saved "${name}" ✓ — visible in \`kernic list\``, "ok");
+    setStatus(`Saved "${name}" ✓ Now in \`kernic list\``, "ok");
     toast(`Saved "${name}"`);
   } catch (e) {
     setStatus(e.message, "err");
@@ -926,6 +1021,7 @@ async function init() {
       state.motion = body.preview?.motion ?? null;
       renderRamps();
       renderPreview();
+      renderPreviewContent();
       syncControls();
       renderVibes();
       setStatus(`Editing "${system.name}"`, "");
@@ -939,7 +1035,7 @@ async function init() {
   const defaultLook = state.looks.find((l) => l.id === "boardroom") ?? state.looks[0];
   if (defaultLook) applyLook(defaultLook);
   else {
-    const vibe = state.meta.vibes.find((v) => v.id === "corporate-clean") ?? state.meta.vibes[0];
+    const vibe = state.meta.vibes.find((v) => v.id === "corporate") ?? state.meta.vibes[0];
     applyVibe(vibe);
   }
   renderVibes();
@@ -947,6 +1043,219 @@ async function init() {
 
 function ratioLabel(r) {
   return { 1.125: "(major second)", 1.2: "(minor third)", 1.25: "(major third)", 1.333: "(perfect fourth)", 1.414: "(augmented fourth)", 1.618: "(golden)" }[r] ?? "";
+}
+
+/* ---------- import flow ---------- */
+
+function parseCssVariables(text) {
+  const vars = {};
+  for (const m of text.matchAll(/--([\w-]+)\s*:\s*([^;]+)/g)) {
+    vars[m[1]] = m[2].trim();
+  }
+  return vars;
+}
+
+function parseDesignMd(text) {
+  const vars = {};
+  const tableRegex = /\|\s*`?--([\w-]+)`?\s*\|\s*([^|]+)\s*\|/g;
+  for (const m of text.matchAll(tableRegex)) {
+    vars[m[1]] = m[2].trim();
+  }
+  return vars;
+}
+
+function tryParseJson(text) {
+  try { return JSON.parse(text); } catch { return null; }
+}
+
+function applyImportedTokens(vars) {
+  let applied = 0;
+  for (const [k, v] of Object.entries(vars)) {
+    if (k.startsWith("color-")) {
+      const parts = k.split("-");
+      if (parts.length >= 3) {
+        const ramp = parts.slice(1, -1).join("-");
+        const stop = parts[parts.length - 1];
+        if (state.ramps?.[ramp]?.[stop] != null) { state.ramps[ramp][stop] = v; applied++; }
+      }
+    } else if (k === "font-heading") { state.fonts.heading = v.replace(/^["']|["']$/g, "").split(",")[0].trim(); applied++; }
+    else if (k === "font-body") { state.fonts.body = v.replace(/^["']|["']$/g, "").split(",")[0].trim(); applied++; }
+    else if (k === "font-mono") { state.fonts.mono = v.replace(/^["']|["']$/g, "").split(",")[0].trim(); applied++; }
+    else if (k === "radius-sm" || k === "radius-md" || k === "radius-lg") {
+      const style = Object.entries(state.meta.radii).find(([, r]) => r.sm === v);
+      if (style) { state.radiusStyle = style[0]; applied++; }
+    }
+  }
+  return applied;
+}
+
+function openImportModal() { $("importModal").classList.add("open"); }
+function closeImportModal() { $("importModal").classList.remove("open"); }
+
+function doImport() {
+  const text = $("importInput").value.trim();
+  if (!text) return;
+  let vars;
+  const json = tryParseJson(text);
+  if (json?.colors) {
+    vars = {};
+    for (const [ramp, stops] of Object.entries(json.colors))
+      for (const [stop, hex] of Object.entries(stops))
+        vars[`color-${ramp}-${stop}`] = hex;
+    if (json.fonts) {
+      if (json.fonts.heading) vars["font-heading"] = json.fonts.heading;
+      if (json.fonts.body) vars["font-body"] = json.fonts.body;
+      if (json.fonts.mono) vars["font-mono"] = json.fonts.mono;
+    }
+  } else {
+    vars = text.includes("--") ? parseCssVariables(text) : parseDesignMd(text);
+  }
+  if (Object.keys(vars).length === 0) { toast("No recognizable tokens found"); return; }
+  pushUndo();
+  const n = applyImportedTokens(vars);
+  syncControls();
+  renderRamps();
+  renderPreview();
+  renderPreviewContent();
+  updateContrastIndicator();
+  closeImportModal();
+  toast(`Imported ${n} token${n === 1 ? "" : "s"}`);
+}
+
+/* ---------- undo / redo ---------- */
+
+const undoStack = [];
+const redoStack = [];
+const UNDO_MAX = 50;
+
+let lastUndoPush = 0;
+
+function pushUndo() {
+  lastUndoPush = Date.now();
+  undoStack.push(snapshotState("edit", Date.now()));
+  if (undoStack.length > UNDO_MAX) undoStack.shift();
+  redoStack.length = 0;
+}
+
+/** One undo entry per burst of slider input, taken before the first change lands. */
+function pushUndoThrottled(gapMs = 400) {
+  if (Date.now() - lastUndoPush < gapMs) return;
+  pushUndo();
+}
+
+function undo() {
+  if (!undoStack.length) return;
+  redoStack.push(snapshotState("edit", Date.now()));
+  restoreSnapshot(undoStack.pop());
+}
+
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push(snapshotState("edit", Date.now()));
+  restoreSnapshot(redoStack.pop());
+}
+
+/* ---------- contrast check ---------- */
+
+function srgbToLinear(c) { const s = c / 255; return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; }
+
+function relativeLuminance(hex) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  return 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
+}
+
+function contrastRatio(hex1, hex2) {
+  const l1 = relativeLuminance(hex1), l2 = relativeLuminance(hex2);
+  const lighter = Math.max(l1, l2), darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function updateContrastIndicator() {
+  const el = $("contrastIndicator");
+  if (!el || !state.ramps) { if (el) el.textContent = ""; return; }
+  const sem = pickMode(state.semanticRaw, state.mode);
+  const bg = sem.background, fg = sem.text;
+  if (!bg || !fg) { el.textContent = ""; return; }
+  const ratio = contrastRatio(bg, fg);
+  const pass = ratio >= 4.5;
+  el.textContent = `${ratio.toFixed(1)}:1`;
+  el.className = `contrast-indicator ${pass ? "pass" : "fail"}`;
+  el.title = `WCAG AA ${pass ? "pass" : "fail"}, ${ratio.toFixed(2)}:1`;
+}
+
+/* ---------- responsive preview (phone viewport) ---------- */
+
+function toggleViewport(vp) {
+  const pv = $("preview");
+  pv.classList.toggle("phone", vp === "phone");
+  document.querySelectorAll("#viewportRow button").forEach(b =>
+    b.classList.toggle("on", b.dataset.vp === vp));
+}
+
+/* ---------- export ---------- */
+
+function formatCssVars() {
+  const sem = pickMode(state.semanticRaw, state.mode);
+  const lines = [":root {"];
+  for (const [ramp, stops] of Object.entries(state.ramps))
+    for (const [stop, hex] of Object.entries(stops))
+      lines.push(`  --color-${ramp}-${stop}: ${hex};`);
+  if (sem.background) lines.push(`  --pv-background: ${sem.background};`);
+  if (sem.text) lines.push(`  --pv-text: ${sem.text};`);
+  if (sem.border) lines.push(`  --pv-border: ${sem.border};`);
+  lines.push(`  --font-heading: "${state.fonts.heading}", sans-serif;`);
+  lines.push(`  --font-body: "${state.fonts.body}", sans-serif;`);
+  lines.push(`  --font-mono: "${state.fonts.mono}", monospace;`);
+  lines.push(`  --radius-sm: ${state.meta.radii[state.radiusStyle].sm};`);
+  lines.push(`  --radius-md: ${state.meta.radii[state.radiusStyle].md};`);
+  lines.push(`  --radius-lg: ${state.meta.radii[state.radiusStyle].lg};`);
+  lines.push("}");
+  return lines.join("\n");
+}
+
+function formatTailwindConfig() {
+  const config = {
+    theme: {
+      extend: {
+        colors: {},
+        fontFamily: {
+          heading: [`"${state.fonts.heading}"`, "sans-serif"],
+          body: [`"${state.fonts.body}"`, "sans-serif"],
+          mono: [`"${state.fonts.mono}"`, "monospace"],
+        },
+        borderRadius: {
+          sm: state.meta.radii[state.radiusStyle].sm,
+          md: state.meta.radii[state.radiusStyle].md,
+          lg: state.meta.radii[state.radiusStyle].lg,
+        },
+      },
+    },
+  };
+  for (const [ramp, stops] of Object.entries(state.ramps))
+    for (const [stop, hex] of Object.entries(stops))
+      config.theme.extend.colors[`${ramp}-${stop}`] = hex;
+  return `/** @type {import('tailwindcss').Config} */\nexport default ${JSON.stringify(config, null, 2)};`;
+}
+
+function formatJsonExport() {
+  return JSON.stringify(buildSystemPayload(), null, 2);
+}
+
+async function doExport(format) {
+  const formatters = { css: formatCssVars, tailwind: formatTailwindConfig, json: formatJsonExport };
+  const text = formatters[format]?.();
+  if (!text) return;
+  $("exportDropdown").classList.remove("open");
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(`${format.toUpperCase()} copied to clipboard`);
+  } catch {
+    toast("Could not reach the clipboard");
+  }
+}
+
+function toggleExportDropdown() {
+  $("exportDropdown").classList.toggle("open");
 }
 
 /* events */
@@ -961,18 +1270,21 @@ $("ramps").addEventListener("click", (e) => {
 });
 
 $("hue").addEventListener("input", (e) => {
+  pushUndoThrottled();
   state.hue = Number(e.target.value);
   $("hueVal").textContent = `${state.hue}°`; // readout stays instant; the fetch coalesces
   state.accentExact = false; // slider takes over — rotate hue, keep vibe's L/C character
   schedulePaletteRefresh();
 });
 $("harmony").addEventListener("change", (e) => {
+  pushUndo();
   state.harmony = e.target.value;
   state.accentExact = false;
   refreshPalette();
 });
-$("ratio").addEventListener("change", (e) => { state.ratio = Number(e.target.value); renderPreview(); });
+$("ratio").addEventListener("change", (e) => { pushUndo(); state.ratio = Number(e.target.value); renderPreview(); });
 $("randomize").onclick = async () => {
+  pushUndo();
   const { seed } = await api("/api/random");
   state.baseSeed = seed;
   state.hue = Math.round(hexToHue(seed));
@@ -981,6 +1293,7 @@ $("randomize").onclick = async () => {
   refreshPalette();
 };
 $("rerollAccent").onclick = () => {
+  pushUndo();
   const shifts = ["analogous", "complementary", "triadic"];
   state.harmony = shifts[Math.floor(Math.random() * shifts.length)];
   state.accentExact = false;
@@ -1024,11 +1337,34 @@ $("shuffle").onclick = async () => {
   renderHistory();
 };
 document.querySelectorAll("#tintRow button").forEach((b) => {
-  b.onclick = () => { state.tint = b.dataset.tint; syncControls(); refreshPalette(); };
+  b.onclick = () => { pushUndo(); state.tint = b.dataset.tint; syncControls(); refreshPalette(); };
 });
 document.querySelectorAll("#modeRow button").forEach((b) => {
-  b.onclick = () => { state.mode = b.dataset.mode; renderPreview(); };
+  b.onclick = () => { state.mode = b.dataset.mode; renderPreview(); updateContrastIndicator(); };
 });
 $("save").onclick = save;
+
+/* new feature event listeners */
+document.querySelectorAll("#viewportRow button").forEach((b) => {
+  b.onclick = () => toggleViewport(b.dataset.vp);
+});
+$("importBtn").onclick = openImportModal;
+$("importCancel").onclick = closeImportModal;
+$("importApply").onclick = doImport;
+$("importModal").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeImportModal(); });
+$("exportBtn").onclick = toggleExportDropdown;
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("#exportBtn") && !e.target.closest("#exportDropdown"))
+    $("exportDropdown")?.classList.remove("open");
+});
+document.querySelectorAll("#exportDropdown button").forEach((b) => {
+  b.onclick = () => doExport(b.dataset.format);
+});
+document.addEventListener("keydown", (e) => {
+  const mod = e.metaKey || e.ctrlKey;
+  if (mod && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+  if (mod && e.key === "z" && e.shiftKey) { e.preventDefault(); redo(); }
+  if (mod && e.key === "y") { e.preventDefault(); redo(); }
+});
 
 init();

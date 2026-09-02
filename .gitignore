@@ -4,3 +4,7 @@ coverage/
 *.log
 .DS_Store
 .env*
+
+# Familiar build log and local hook wiring: private, this repo is public
+KERNIC-LOG.md
+.claude/settings.json
