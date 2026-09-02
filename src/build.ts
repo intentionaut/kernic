@@ -1,5 +1,6 @@
 import { buildGradients, buildNeutral, buildRamp } from "./color.ts";
-import type { DesignSystem, Ramp } from "./types.ts";
+import { tokenGroups } from "./tokens.ts";
+import type { DesignSystem, MotionPreset, Ramp } from "./types.ts";
 import { RADIUS_PRESETS, type RadiusStyle, type Vibe } from "./vibes.ts";
 
 export function rampsFromVibe(vibe: Vibe): { primary: Ramp; accent: Ramp; neutral: Ramp } {
@@ -42,10 +43,12 @@ export function buildDesignSystem(params: {
   radiusStyle: RadiusStyle;
   radius: { sm: string; md: string; lg: string; xl: string };
   ratio: number;
+  /** Motion preset. Defaults to the vibe's, or brisk for a custom system. */
+  motion?: MotionPreset;
   createdAt?: string;
 }): DesignSystem {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     name: params.name,
     vibe: params.vibeId,
     createdAt: params.createdAt ?? new Date().toISOString(),
@@ -54,6 +57,7 @@ export function buildDesignSystem(params: {
     fonts: params.fonts,
     radius: { style: params.radiusStyle, ...params.radius },
     typeScale: { ratio: params.ratio, baseRem: 1 },
+    ...tokenGroups({ vibe: params.vibeId, colors: params.colors }, params.motion),
     gradients: buildGradients(params.colors),
   };
 }
@@ -69,5 +73,6 @@ export function buildFromVibe(name: string, vibe: Vibe, fonts?: Partial<DesignSy
     radiusStyle: vibe.radius,
     radius: RADIUS_PRESETS[vibe.radius],
     ratio: vibe.typeRatio,
+    motion: vibe.motion,
   });
 }

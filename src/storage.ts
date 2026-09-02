@@ -1,7 +1,8 @@
 import { access, mkdir, readFile, readdir, rename, rm, unlink, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { DesignSystem } from "./types.ts";
+import { migrateSystem } from "./tokens.ts";
+import type { DesignSystem, DesignSystemV1 } from "./types.ts";
 
 let migrated = false;
 
@@ -75,10 +76,9 @@ export async function loadSystem(name: string): Promise<DesignSystem | null> {
   if (!normalized) return null;
   try {
     const raw = await readFile(join(await systemsDir(), `${normalized}.json`), "utf8");
-    const ds = JSON.parse(raw) as DesignSystem;
-    // Backfill pre-schema files; unknown extension keys are preserved for premium/cloud features.
-    if (!ds.schemaVersion) ds.schemaVersion = 1;
-    return ds;
+    // A version-1 file gains the token groups version 2 added, derived from
+    // its own ramps and vibe. Keys this version does not know are kept.
+    return migrateSystem(JSON.parse(raw) as DesignSystem | DesignSystemV1);
   } catch {
     return null;
   }

@@ -149,7 +149,7 @@ describe("recordApplication", () => {
       system: FIXTURE_VIBE_DS.name,
       appliedAt: "2026-01-01T00:00:00.000Z",
       hash: hashArtifacts(artifacts),
-      files: ["design.md", "tokens.json"],
+      files: ["DESIGN.md", "tokens.json", "shadcn.json"],
     });
   });
 

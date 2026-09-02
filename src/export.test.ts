@@ -3,7 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { designBrief, dtcgTokens } from "./context.ts";
+import { shadcnRegistryItem } from "./shadcn.ts";
 import {
+  CONTEXT_FILES,
   EXPORT_FORMATS,
   FORMAT_LIST,
   contextArtifacts,
@@ -138,9 +140,10 @@ describe("exportArtifacts", () => {
     const files = exportArtifacts(FIXTURE_VIBE_DS, "all").map((a) => a.file);
     // The four -f all has always written...
     expect(files).toEqual(expect.arrayContaining(["tokens.css", "tailwind.css", "tokens.json", "fonts.html"]));
-    // ...plus the artifact a vibe coder actually needs, which it used to skip.
-    expect(files).toContain("design.md");
+    // ...plus the standard files an agent and a shadcn project read.
+    expect(files).toContain("DESIGN.md");
     expect(files).toContain("tokens.dtcg.json");
+    expect(files).toContain("shadcn.json");
   });
 
   it("writes unique filenames for -f all", () => {
@@ -156,32 +159,41 @@ describe("exportArtifacts", () => {
 });
 
 describe("contextArtifacts", () => {
-  it("is design.md + a DTCG tokens.json, matching what kernic context has always written", () => {
+  it("is one file per standard by default: DESIGN.md, DTCG tokens.json, shadcn.json", () => {
     expect(contextArtifacts(FIXTURE_VIBE_DS)).toEqual([
-      { file: "design.md", content: designBrief(FIXTURE_VIBE_DS) },
+      { file: "DESIGN.md", content: designBrief(FIXTURE_VIBE_DS) },
       { file: "tokens.json", content: dtcgTokens(FIXTURE_VIBE_DS) },
+      { file: "shadcn.json", content: shadcnRegistryItem(FIXTURE_VIBE_DS) },
     ]);
+    expect([...CONTEXT_FILES]).toEqual(["DESIGN.md", "tokens.json", "shadcn.json"]);
   });
 
   it("appends requested stylesheets", () => {
     const files = contextArtifacts(FIXTURE_VIBE_DS, ["css", "tailwind"]).map((a) => a.file);
-    expect(files).toEqual(["design.md", "tokens.json", "tokens.css", "tailwind.css"]);
+    expect(files).toEqual(["DESIGN.md", "tokens.json", "shadcn.json", "tokens.css", "tailwind.css"]);
   });
 
-  it("ignores extras that would collide with, or duplicate, the brief pair", () => {
-    const files = contextArtifacts(FIXTURE_VIBE_DS, ["json", "dtcg", "design-md"]).map((a) => a.file);
-    expect(files).toEqual(["design.md", "tokens.json"]);
+  it("leaves out a standard file on request", () => {
+    const files = contextArtifacts(FIXTURE_VIBE_DS, [], ["shadcn.json"]).map((a) => a.file);
+    expect(files).toEqual(["DESIGN.md", "tokens.json"]);
+  });
+
+  it("ignores extras that would repeat a standard file under another name", () => {
+    const files = contextArtifacts(FIXTURE_VIBE_DS, ["json", "dtcg", "design-md", "shadcn"]).map((a) => a.file);
+    expect(files).toEqual(["DESIGN.md", "tokens.json", "shadcn.json"]);
   });
 
   it("does not duplicate a stylesheet requested twice", () => {
     const files = contextArtifacts(FIXTURE_VIBE_DS, ["css", "css"]).map((a) => a.file);
-    expect(files).toEqual(["design.md", "tokens.json", "tokens.css"]);
+    expect(files).toEqual(["DESIGN.md", "tokens.json", "shadcn.json", "tokens.css"]);
   });
 });
 
 describe("renderProjectFile", () => {
-  it("regenerates every filename kernic writes into a project", () => {
+  it("regenerates every filename kernic writes into a project, including the pre-0.2.0 brief name", () => {
+    expect(renderProjectFile(FIXTURE_VIBE_DS, "DESIGN.md")).toBe(designBrief(FIXTURE_VIBE_DS));
     expect(renderProjectFile(FIXTURE_VIBE_DS, "design.md")).toBe(designBrief(FIXTURE_VIBE_DS));
+    expect(renderProjectFile(FIXTURE_VIBE_DS, "shadcn.json")).toBe(shadcnRegistryItem(FIXTURE_VIBE_DS));
     expect(renderProjectFile(FIXTURE_VIBE_DS, "tokens.json")).toBe(dtcgTokens(FIXTURE_VIBE_DS));
     expect(renderProjectFile(FIXTURE_VIBE_DS, "tokens.dtcg.json")).toBe(dtcgTokens(FIXTURE_VIBE_DS));
     expect(renderProjectFile(FIXTURE_VIBE_DS, "tokens.css")).toBe(exportCss(FIXTURE_VIBE_DS));
@@ -205,12 +217,13 @@ describe("writeArtifacts / writeContext", () => {
     await rm(dir, { recursive: true, force: true });
   });
 
-  it("writes design.md and tokens.json with content matching the pure builders", async () => {
+  it("writes DESIGN.md, tokens.json and shadcn.json with content matching the pure builders", async () => {
     const written = await writeContext(FIXTURE_VIBE_DS, dir);
-    expect(written).toEqual([join(dir, "design.md"), join(dir, "tokens.json")]);
+    expect(written).toEqual([join(dir, "DESIGN.md"), join(dir, "tokens.json"), join(dir, "shadcn.json")]);
 
-    expect(await readFile(join(dir, "design.md"), "utf8")).toBe(designBrief(FIXTURE_VIBE_DS));
+    expect(await readFile(join(dir, "DESIGN.md"), "utf8")).toBe(designBrief(FIXTURE_VIBE_DS));
     expect(await readFile(join(dir, "tokens.json"), "utf8")).toBe(dtcgTokens(FIXTURE_VIBE_DS));
+    expect(await readFile(join(dir, "shadcn.json"), "utf8")).toBe(shadcnRegistryItem(FIXTURE_VIBE_DS));
   });
 
   it("creates the target directory when it does not exist", async () => {
@@ -228,7 +241,8 @@ describe("writeArtifacts / writeContext", () => {
       "tokens.json",
       "fonts.html",
       "tokens.dtcg.json",
-      "design.md",
+      "DESIGN.md",
+      "shadcn.json",
     ]);
   });
 });
@@ -246,17 +260,23 @@ describe("planArtifacts — never destroys a file the user owns", () => {
 
   it("writes everything into an empty directory", async () => {
     const plan = await planArtifacts(dir, pair());
-    expect(plan.toWrite.map((a) => a.file)).toEqual(["design.md", "tokens.json"]);
+    expect(plan.toWrite.map((a) => a.file)).toEqual(["DESIGN.md", "tokens.json", "shadcn.json"]);
     expect(plan.blocked).toEqual([]);
   });
 
-  it("blocks a tokens.json the user wrote, and still writes design.md", async () => {
+  it("blocks a tokens.json the user wrote, and still writes the rest", async () => {
     // tokens.json is also Style Dictionary's and Tokens Studio's filename.
     await writeFile(join(dir, "tokens.json"), '{"my":"config"}', "utf8");
     const plan = await planArtifacts(dir, pair());
     expect(plan.blocked).toEqual(["tokens.json"]);
-    expect(plan.toWrite.map((a) => a.file)).toEqual(["design.md"]);
+    expect(plan.toWrite.map((a) => a.file)).toEqual(["DESIGN.md", "shadcn.json"]);
     expect(await readFile(join(dir, "tokens.json"), "utf8")).toBe('{"my":"config"}');
+  });
+
+  it("blocks a shadcn.json from a registry kernic did not write", async () => {
+    await writeFile(join(dir, "shadcn.json"), '{"name":"theirs","type":"registry:style"}', "utf8");
+    const plan = await planArtifacts(dir, pair());
+    expect(plan.blocked).toEqual(["shadcn.json"]);
   });
 
   it("replaces a tokens.json kernic itself wrote", async () => {
@@ -271,14 +291,14 @@ describe("planArtifacts — never destroys a file the user owns", () => {
     const plan = await planArtifacts(dir, pair(), { force: true });
     expect(plan.blocked).toEqual([]);
     expect(plan.replaced).toEqual(["tokens.json (was not written by kernic)"]);
-    expect(plan.toWrite).toHaveLength(2);
+    expect(plan.toWrite).toHaveLength(3);
   });
 
   it("protects every artifact -f all writes, not just tokens.json", async () => {
     await writeFile(join(dir, "tokens.css"), "body { color: red }", "utf8");
-    await writeFile(join(dir, "design.md"), "# my own notes", "utf8");
+    await writeFile(join(dir, "DESIGN.md"), "# my own notes", "utf8");
     const plan = await planArtifacts(dir, exportArtifacts(FIXTURE_VIBE_DS, "all"));
-    expect(plan.blocked).toEqual(expect.arrayContaining(["tokens.css", "design.md"]));
+    expect(plan.blocked).toEqual(expect.arrayContaining(["tokens.css", "DESIGN.md"]));
   });
 
   it("treats a truncated or invalid kernic file as the user's", async () => {
@@ -290,14 +310,21 @@ describe("planArtifacts — never destroys a file the user owns", () => {
 
 describe("isKernicOwned", () => {
   it("recognises each artifact kernic generates", () => {
-    expect(isKernicOwned("design.md", designBrief(FIXTURE_VIBE_DS))).toBe(true);
+    expect(isKernicOwned("DESIGN.md", designBrief(FIXTURE_VIBE_DS))).toBe(true);
     expect(isKernicOwned("tokens.json", dtcgTokens(FIXTURE_VIBE_DS))).toBe(true);
+    expect(isKernicOwned("shadcn.json", shadcnRegistryItem(FIXTURE_VIBE_DS))).toBe(true);
     expect(isKernicOwned("tokens.css", exportCss(FIXTURE_VIBE_DS))).toBe(true);
+  });
+
+  it("still recognises a design.md written by a version before 0.2.0", () => {
+    const legacy = "# acme — design system\n\n> Generated by [kernic](https://github.com/intentionaut/kernic) · vibe: tech\n";
+    expect(isKernicOwned("design.md", legacy)).toBe(true);
   });
 
   it("does not claim a lookalike from another tokens tool", () => {
     expect(isKernicOwned("tokens.json", '{"color":{"red":{"value":"#f00"}}}')).toBe(false);
-    expect(isKernicOwned("design.md", "# Design notes\nby hand")).toBe(false);
+    expect(isKernicOwned("DESIGN.md", "---\nname: mine\n---\n# Design notes\nby hand")).toBe(false);
+    expect(isKernicOwned("shadcn.json", '{"name":"theirs","type":"registry:style"}')).toBe(false);
     expect(isKernicOwned("tokens.css", ":root { --brand: red }")).toBe(false);
   });
 

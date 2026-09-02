@@ -1,8 +1,10 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { designBrief, dtcgTokens } from "./context.ts";
+import { DESIGN_MD_FILE, LEGACY_BRIEF_FILE, OWNERSHIP_MARK, designBrief, dtcgTokens, typeScaleEntries } from "./context.ts";
 import { fontImportUrl } from "./fonts.ts";
-import type { DesignSystem } from "./types.ts";
+import { SHADCN_FILE, isKernicShadcn, shadcnRegistryItem } from "./shadcn.ts";
+import { easeCss, shadowCss } from "./tokens.ts";
+import { SHADOW_LEVELS, TYPE_STEPS, type DesignSystem, type Ramp } from "./types.ts";
 
 const varName = (...parts: string[]) => parts.filter(Boolean).join("-");
 
@@ -62,15 +64,44 @@ function radiusVars(ds: DesignSystem): string[] {
   ];
 }
 
-function spaceVars(): string[] {
-  const steps = [0.5, 1, 1.5, 2, 3, 4, 6, 8, 12, 16];
-  return steps.map((n) => `  --space-${String(n).replace(".", "-")}: ${n}rem;`);
+function spaceVars(ds: DesignSystem): string[] {
+  return Object.entries(ds.spacing.scale).map(([k, v]) => `  --space-${k}: ${v};`);
 }
 
 function scaleVars(ds: DesignSystem): string[] {
-  const names = ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl", "5xl"];
-  const exps = [-1, -0.5, 0, 1, 2, 3, 5, 7, 9];
-  return names.map((n, i) => `  --text-${n}: ${(ds.typeScale.baseRem * Math.pow(ds.typeScale.ratio, exps[i])).toFixed(3)}rem;`);
+  return typeScaleEntries(ds).map(([name, rem]) => `  --text-${name}: ${rem}rem;`);
+}
+
+function typographyVars(ds: DesignSystem): string[] {
+  const t = ds.typography;
+  return [
+    ...TYPE_STEPS.map((s) => `  --leading-${s}: ${t.leading[s]};`),
+    ...Object.entries(t.tracking).map(([k, v]) => `  --tracking-${k}: ${v};`),
+    ...Object.entries(t.weights).map(([k, v]) => `  --font-weight-${k}: ${v};`),
+  ];
+}
+
+function shadowVars(ds: DesignSystem, mode: "light" | "dark", prefix = "--shadow-"): string[] {
+  return SHADOW_LEVELS.map((l) => `  ${prefix}${l}: ${shadowCss(ds.shadows[l][mode])};`);
+}
+
+function motionVars(ds: DesignSystem): string[] {
+  return [
+    ...Object.entries(ds.motion.duration).map(([k, v]) => `  --duration-${k}: ${v};`),
+    `  --ease-out: ${easeCss(ds.motion.ease.out)};`,
+    `  --ease-in-out: ${easeCss(ds.motion.ease.inOut)};`,
+    `  --ease-emphasized: ${easeCss(ds.motion.ease.emphasized)};`,
+  ];
+}
+
+function layoutVars(ds: DesignSystem): string[] {
+  return [
+    ...Object.entries(ds.breakpoints).map(([k, v]) => `  --breakpoint-${k}: ${v};`),
+    ...Object.entries(ds.containers)
+      .filter(([k]) => k !== "measure")
+      .map(([k, v]) => `  --container-${k}: ${v};`),
+    `  --measure: ${ds.containers.measure};`,
+  ];
 }
 
 /** Plain CSS custom properties, ready to paste into a global stylesheet. */
@@ -86,11 +117,23 @@ export function exportCss(ds: DesignSystem): string {
     "",
     "  /* Typography */",
     ...scaleVars(ds),
+    ...typographyVars(ds),
     ...fontVars(ds),
     "",
     "  /* Radius & spacing */",
     ...radiusVars(ds),
-    ...spaceVars(),
+    `  --spacing: ${ds.spacing.unit};`,
+    ...spaceVars(ds),
+    "",
+    "  /* Shadows (light) — dark values below */",
+    ...shadowVars(ds, "light"),
+    ...shadowVars(ds, "dark", "--dark-shadow-"),
+    "",
+    "  /* Motion */",
+    ...motionVars(ds),
+    "",
+    "  /* Layout */",
+    ...layoutVars(ds),
     "}",
     "",
     "@media (prefers-color-scheme: dark) {",
@@ -100,33 +143,46 @@ export function exportCss(ds: DesignSystem): string {
     "    --text: var(--dark-text);",
     "    --muted-text: var(--dark-muted-text);",
     "    --border: var(--dark-border);",
+    ...SHADOW_LEVELS.map((l) => `    --shadow-${l}: var(--dark-shadow-${l});`),
+    "  }",
+    "}",
+    "",
+    "@media (prefers-reduced-motion: reduce) {",
+    "  :root {",
+    "    --duration-fast: 0ms;",
+    "    --duration-base: 0ms;",
+    "    --duration-slow: 0ms;",
     "  }",
     "}",
     "",
   ].join("\n");
 }
 
-/** Tailwind v4 @theme block. */
+/**
+ * Tailwind v4 theme. Semantic colours and shadows have a light and a dark
+ * value, so they live on `:root` / `.dark` and reach the theme through
+ * `@theme inline`, the way shadcn wires its variables. Everything single-valued
+ * goes straight into `@theme`.
+ */
 export function exportTailwind(ds: DesignSystem): string {
-  const twColors: string[] = [];
-  for (const [rampName, ramp] of Object.entries(ds.colors)) {
+  const s = ds.semantic;
+  const t = ds.typography;
+  const rampVars: string[] = [];
+  for (const [rampName, ramp] of Object.entries(ds.colors) as [string, Ramp][]) {
     for (const [stop, hex] of Object.entries(ramp)) {
-      twColors.push(`  --color-${rampName}-${stop}: ${hex};`);
+      rampVars.push(`  --color-${rampName}-${stop}: ${hex};`);
     }
   }
-  // Tailwind v4 semantic aliases
-  twColors.push(
-    `  --color-background: ${ds.semantic.background.light};`,
-    `  --color-surface: ${ds.semantic.surface.light};`,
-    `  --color-foreground: ${ds.semantic.text.light};`,
-    `  --color-muted: ${ds.semantic.mutedText.light};`,
-    `  --color-border-default: ${ds.semantic.border.light};`
-  );
-  if (ds.gradients) {
-    for (const [name, value] of Object.entries(ds.gradients)) {
-      twColors.push(`  --background-image-${name}: ${value};`);
-    }
-  }
+  const gradientVars = Object.entries(ds.gradients ?? {}).map(([name, value]) => `  --background-image-${name}: ${value};`);
+  const modeVars = (mode: "light" | "dark") => [
+    `  --background: ${s.background[mode]};`,
+    `  --surface: ${s.surface[mode]};`,
+    `  --foreground: ${s.text[mode]};`,
+    `  --muted-foreground: ${s.mutedText[mode]};`,
+    `  --border-default: ${s.border[mode]};`,
+    `  --ring: ${s.ring};`,
+    ...shadowVars(ds, mode, "--shadow-").map((line) => line.replace("--shadow-", "--elevation-")),
+  ];
   return [
     `/* kernic — "${ds.name}" Tailwind v4 theme (vibe: ${ds.vibe}) */`,
     `@import "tailwindcss";`,
@@ -134,17 +190,58 @@ export function exportTailwind(ds: DesignSystem): string {
     `@import url("${fontImportUrl(ds.fonts.body)}");`,
     `@import url("${fontImportUrl(ds.fonts.mono)}");`,
     "",
+    "@custom-variant dark (&:where(.dark, .dark *));",
+    "",
+    ":root {",
+    ...modeVars("light"),
+    "}",
+    "",
+    ".dark {",
+    ...modeVars("dark"),
+    "}",
+    "",
+    "@theme inline {",
+    "  --color-background: var(--background);",
+    "  --color-surface: var(--surface);",
+    "  --color-foreground: var(--foreground);",
+    "  --color-muted: var(--muted-foreground);",
+    "  --color-border-default: var(--border-default);",
+    "  --color-ring: var(--ring);",
+    ...SHADOW_LEVELS.map((l) => `  --shadow-${l}: var(--elevation-${l});`),
+    "}",
+    "",
     "@theme {",
-    ...twColors,
+    ...rampVars,
+    ...gradientVars,
     "",
     `  --font-heading: "${ds.fonts.heading}", ui-serif, serif;`,
     `  --font-body: "${ds.fonts.body}", ui-sans-serif, system-ui, sans-serif;`,
     `  --font-mono: "${ds.fonts.mono}", ui-monospace, monospace;`,
     "",
+    ...typeScaleEntries(ds).flatMap(([name, rem]) => [
+      `  --text-${name}: ${rem}rem;`,
+      `  --text-${name}--line-height: ${t.leading[name]};`,
+    ]),
+    ...Object.entries(t.tracking).map(([k, v]) => `  --tracking-${k}: ${v};`),
+    ...Object.entries(t.weights).map(([k, v]) => `  --font-weight-${k}: ${v};`),
+    "",
     `  --radius-sm: ${ds.radius.sm};`,
     `  --radius-md: ${ds.radius.md};`,
     `  --radius-lg: ${ds.radius.lg};`,
     `  --radius-xl: ${ds.radius.xl};`,
+    "",
+    `  --spacing: ${ds.spacing.unit};`,
+    ...Object.entries(ds.spacing.scale).map(([k, v]) => `  --spacing-${k}: ${v};`),
+    "",
+    ...Object.entries(ds.motion.duration).map(([k, v]) => `  --duration-${k}: ${v};`),
+    `  --ease-out: ${easeCss(ds.motion.ease.out)};`,
+    `  --ease-in-out: ${easeCss(ds.motion.ease.inOut)};`,
+    `  --ease-emphasized: ${easeCss(ds.motion.ease.emphasized)};`,
+    "",
+    ...Object.entries(ds.breakpoints).map(([k, v]) => `  --breakpoint-${k}: ${v};`),
+    ...Object.entries(ds.containers)
+      .filter(([k]) => k !== "measure")
+      .map(([k, v]) => `  --container-${k}: ${v};`),
     "}",
     "",
   ].join("\n");
@@ -181,11 +278,11 @@ export function exportFonts(ds: DesignSystem): string {
  * once shows up everywhere instead of in one surface at a time.
  * ---------------------------------------------------------------------- */
 
-export const EXPORT_FORMATS = ["css", "tailwind", "json", "fonts", "dtcg", "design-md"] as const;
+export const EXPORT_FORMATS = ["css", "tailwind", "json", "fonts", "dtcg", "design-md", "shadcn"] as const;
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
 
 /** The exact wording used in --format help and in every "unknown format" error. */
-export const FORMAT_LIST = "css | tailwind | json | fonts | dtcg | design-md | all";
+export const FORMAT_LIST = "css | tailwind | json | fonts | dtcg | design-md | shadcn | all";
 
 const RENDERERS: Record<ExportFormat, (ds: DesignSystem) => string> = {
   css: exportCss,
@@ -194,6 +291,7 @@ const RENDERERS: Record<ExportFormat, (ds: DesignSystem) => string> = {
   fonts: exportFonts,
   dtcg: dtcgTokens,
   "design-md": designBrief,
+  shadcn: shadcnRegistryItem,
 };
 
 /**
@@ -210,7 +308,8 @@ const EXPORT_FILES: Record<ExportFormat, string> = {
   json: "tokens.json",
   fonts: "fonts.html",
   dtcg: "tokens.dtcg.json",
-  "design-md": "design.md",
+  "design-md": DESIGN_MD_FILE,
+  shadcn: SHADCN_FILE,
 };
 
 /** What `-f all` writes, in order. */
@@ -251,20 +350,34 @@ export function exportArtifacts(ds: DesignSystem, format: string): Artifact[] {
 }
 
 /**
- * The agent-context pair: design.md plus the W3C DTCG tokens under the
- * historical tokens.json name that `kernic context` has always used.
- * `extras` adds stylesheet artifacts (css / tailwind) for callers that want
- * ready-to-import styles alongside the brief.
+ * The files `kernic context` and apply_to_project write without being asked:
+ * one per standard the ecosystem reads. DESIGN.md for coding agents, W3C DTCG
+ * tokens under the tokens.json name `kernic context` has always used, and a
+ * shadcn registry item.
  */
-export function contextArtifacts(ds: DesignSystem, extras: readonly ExportFormat[] = []): Artifact[] {
-  const artifacts: Artifact[] = [
-    { file: "design.md", content: designBrief(ds) },
+export const CONTEXT_FILES = [DESIGN_MD_FILE, "tokens.json", SHADCN_FILE] as const;
+export type ContextFile = (typeof CONTEXT_FILES)[number];
+
+/**
+ * The context set, minus anything in `exclude`, plus stylesheet `extras`
+ * (css / tailwind / fonts) for callers that want ready-to-import styles beside
+ * the brief.
+ */
+export function contextArtifacts(
+  ds: DesignSystem,
+  extras: readonly ExportFormat[] = [],
+  exclude: readonly string[] = []
+): Artifact[] {
+  const standard: Artifact[] = [
+    { file: DESIGN_MD_FILE, content: designBrief(ds) },
     { file: "tokens.json", content: dtcgTokens(ds) },
+    { file: SHADCN_FILE, content: shadcnRegistryItem(ds) },
   ];
+  const artifacts = standard.filter((a) => !exclude.includes(a.file));
   for (const f of extras) {
-    // design-md/dtcg/json would collide with the pair above under a different
-    // name and confuse the agent about which file is authoritative.
-    if (f === "design-md" || f === "dtcg" || f === "json") continue;
+    // These would repeat a standard file under a second name and leave the
+    // agent unsure which one is authoritative.
+    if (f === "design-md" || f === "dtcg" || f === "json" || f === "shadcn") continue;
     const file = EXPORT_FILES[f];
     if (artifacts.some((a) => a.file === file)) continue;
     artifacts.push({ file, content: RENDERERS[f](ds) });
@@ -284,11 +397,14 @@ export function contextArtifacts(ds: DesignSystem, extras: readonly ExportFormat
  */
 export function renderProjectFile(ds: DesignSystem, file: string): string | null {
   switch (file) {
-    case "design.md":
+    case DESIGN_MD_FILE:
+    case LEGACY_BRIEF_FILE:
       return designBrief(ds);
     case "tokens.json":
     case "tokens.dtcg.json":
       return dtcgTokens(ds);
+    case SHADCN_FILE:
+      return shadcnRegistryItem(ds);
     case "tokens.css":
       return exportCss(ds);
     case "tailwind.css":
@@ -312,8 +428,11 @@ export function renderProjectFile(ds: DesignSystem, file: string): string | null
 export function isKernicOwned(file: string, content: string): boolean {
   const head = content.slice(0, 512);
   switch (file) {
-    case "design.md":
-      return head.includes("Generated by [kernic]");
+    case DESIGN_MD_FILE:
+    case LEGACY_BRIEF_FILE:
+      return head.includes(OWNERSHIP_MARK);
+    case SHADCN_FILE:
+      return isKernicShadcn(content);
     case "tokens.json":
     case "tokens.dtcg.json":
       try {
@@ -387,7 +506,7 @@ export async function writeArtifacts(dir: string, artifacts: readonly Artifact[]
   return written;
 }
 
-/** Write design.md + tokens.json into outDir. Returns written paths. */
+/** Write the context set (DESIGN.md, tokens.json, shadcn.json) into outDir. Returns written paths. */
 export async function writeContext(ds: DesignSystem, outDir: string): Promise<string[]> {
   return writeArtifacts(outDir, contextArtifacts(ds));
 }

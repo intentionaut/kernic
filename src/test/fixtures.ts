@@ -1,9 +1,10 @@
-// Shared fixtures for export.test.ts, context.test.ts, and mcp.test.ts, so each
-// test file doesn't invent its own DesignSystem literal.
+// Shared fixtures for export.test.ts, context.test.ts, shadcn.test.ts and
+// mcp.test.ts, so each test file doesn't invent its own DesignSystem literal.
 import { buildFromVibe, semanticFromRamps } from "../build.ts";
 import { buildNeutral, buildRamp } from "../color.ts";
+import { migrateSystem } from "../tokens.ts";
 import { RADIUS_PRESETS, getVibe } from "../vibes.ts";
-import type { DesignSystem } from "../types.ts";
+import type { DesignSystem, DesignSystemV1 } from "../types.ts";
 
 export const FIXED_CREATED_AT = "2024-01-01T00:00:00.000Z";
 
@@ -18,7 +19,11 @@ const edgeColors = {
   neutral: buildNeutral(),
 };
 
-export const FIXTURE_EDGE_DS: DesignSystem = {
+/**
+ * The edge case as a version-1 file, the shape kernic wrote before 0.3.0.
+ * Migration tests read this directly; everything else uses the migrated form.
+ */
+export const FIXTURE_V1_FILE: DesignSystemV1 = {
   schemaVersion: 1,
   name: "edge-case",
   vibe: "custom",
@@ -30,3 +35,5 @@ export const FIXTURE_EDGE_DS: DesignSystem = {
   typeScale: { ratio: 1.125, baseRem: 1 },
   // gradients intentionally omitted
 };
+
+export const FIXTURE_EDGE_DS: DesignSystem = migrateSystem(FIXTURE_V1_FILE);

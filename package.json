@@ -1,7 +1,7 @@
 {
   "name": "kernic",
-  "version": "0.1.7",
-  "description": "Kern your whole app — design systems from the terminal. Palette picker, Google Fonts, vibes; free forever CLI, export CSS vars / Tailwind v4 / JSON tokens.",
+  "version": "0.3.0",
+  "description": "Kern your whole app — design systems from the terminal. Palette picker, Google Fonts, vibes; free forever CLI. Writes DESIGN.md, W3C design tokens, a shadcn theme, CSS vars and Tailwind v4.",
   "type": "module",
   "bin": {
     "kernic": "dist/index.js"
@@ -52,6 +52,7 @@
     "commander": "^14.0.0"
   },
   "devDependencies": {
+    "@google/design.md": "^0.4.0",
     "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^4.1.11",
     "tsx": "^4.19.0",

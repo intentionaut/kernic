@@ -26,6 +26,7 @@ import {
   recordApplication,
   type ProjectStatus,
 } from "./projects.ts";
+import { SHADCN_FILE } from "./shadcn.ts";
 import { renderPalette } from "./swatch.ts";
 import { deleteSystem, listSystems, loadSystem, normalizeName, saveSystem } from "./storage.ts";
 import { VIBES } from "./vibes.ts";
@@ -245,18 +246,20 @@ program
 
 program
   .command("context")
-  .description("Write agent-readable design context (design.md + W3C tokens.json) into a project")
+  .description("Write DESIGN.md, W3C tokens.json and a shadcn registry item into a project")
   .argument("<name>")
   .option("-o, --out <dir>", "target directory", ".")
+  .option("--no-shadcn", "skip shadcn.json (for projects that do not use shadcn)")
   .option("--force", "replace files in that directory even if kernic did not write them")
-  .action(async (name: string, opts: { out: string; force?: boolean }) => {
+  .action(async (name: string, opts: { out: string; shadcn: boolean; force?: boolean }) => {
     const ds = await loadSystem(name);
     if (!ds) fail(`Not found: "${name}". Try \`kernic list\`.`);
 
     // Same shared code path the MCP apply_to_project tool uses, so the two can
     // never write a different set of files.
     const dir = resolve(opts.out);
-    const plan = await planArtifacts(dir, contextArtifacts(ds), { force: opts.force });
+    const exclude = opts.shadcn === false ? [SHADCN_FILE] : [];
+    const plan = await planArtifacts(dir, contextArtifacts(ds, [], exclude), { force: opts.force });
     const artifacts = plan.toWrite;
     for (const file of await writeArtifacts(dir, artifacts)) p.log.step(`Wrote ${file}`);
     reportBlocked(plan.blocked);
@@ -300,7 +303,7 @@ program
         [
           "No projects yet.",
           "",
-          "  kernic context <name> -o ./my-app    # writes design.md + tokens.json there",
+          "  kernic context <name> -o ./my-app    # writes DESIGN.md, tokens.json and shadcn.json there",
           "",
           "Anything you apply a system to shows up here.",
         ].join("\n")

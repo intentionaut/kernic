@@ -16,7 +16,8 @@ import {
 import { semanticFromRamps } from "../build.ts";
 import { getFontCatalog, rankFonts, type FontInfo } from "../fonts.ts";
 import { loadSystem, normalizeName, saveSystem } from "../storage.ts";
-import type { DesignSystem, Ramp } from "../types.ts";
+import { MOTION_PRESET_IDS, buildMotion, buildShadows, easeCss, migrateSystem, shadowCss } from "../tokens.ts";
+import { SHADOW_LEVELS, type DesignSystem, type DesignSystemV1, type MotionPreset, type MotionTokens, type Ramp, type ShadowTokens } from "../types.ts";
 import { RADIUS_PRESETS, VIBES, type Vibe } from "../vibes.ts";
 import { PREVIEW_COPY } from "./copy.ts";
 import { LOOKS } from "./looks.ts";
@@ -197,6 +198,21 @@ interface PaletteRequest {
   neutralTintHue?: number | null;
   chromaScale?: number;
   lRange?: [number, number];
+  /** Motion preset for the preview's transitions; the vibe's, when known. */
+  motion?: MotionPreset;
+}
+
+/** Shadows and motion as CSS strings, for the preview to drop into variables. */
+export function previewExtras(shadows: ShadowTokens, motion: MotionTokens) {
+  const css = (mode: "light" | "dark") =>
+    Object.fromEntries(SHADOW_LEVELS.map((l) => [l, shadowCss(shadows[l][mode])]));
+  return {
+    shadows: { light: css("light"), dark: css("dark") },
+    motion: {
+      duration: { ...motion.duration },
+      ease: { out: easeCss(motion.ease.out), inOut: easeCss(motion.ease.inOut), emphasized: easeCss(motion.ease.emphasized) },
+    },
+  };
 }
 
 export function buildPalette(req: PaletteRequest) {
@@ -225,6 +241,10 @@ export function buildPalette(req: PaletteRequest) {
     semantic: semanticFromRamps(colors, false),
     semanticDark: semanticFromRamps(colors, true),
     gradients: buildGradients(colors),
+    ...previewExtras(
+      buildShadows(colors.neutral),
+      buildMotion(MOTION_PRESET_IDS.includes(req.motion as MotionPreset) ? (req.motion as MotionPreset) : "brisk")
+    ),
   };
 }
 
@@ -307,7 +327,7 @@ export async function apiLoad(
 ): Promise<{ status: 200 | 404; body: unknown }> {
   const ds = await deps.loadSystem(name);
   if (!ds) return { status: 404, body: { error: `Not found: ${name}` } };
-  return { status: 200, body: { system: ds, seeds: deriveSeeds(ds) } };
+  return { status: 200, body: { system: ds, seeds: deriveSeeds(ds), preview: previewExtras(ds.shadows, ds.motion) } };
 }
 
 /* ---------- POST /api/save validation ----------
@@ -490,8 +510,9 @@ export function validateSystemBody(body: unknown): DesignSystem {
     extensions = body.extensions;
   }
 
-  return {
-    schemaVersion: 1,
+  // Studio edits the version-1 surface (ramps, fonts, radius, scale); the
+  // version-2 token groups are derived from those, the same way a build does.
+  const v1: DesignSystemV1 = {
     name,
     vibe,
     createdAt: new Date().toISOString(),
@@ -503,6 +524,7 @@ export function validateSystemBody(body: unknown): DesignSystem {
     gradients,
     extensions,
   };
+  return migrateSystem(v1);
 }
 
 export async function apiSave(

@@ -154,6 +154,37 @@ export function harmonize(seedHex: string, harmony: Harmony): string {
   return oklchToHex({ l: Math.min(0.85, Math.max(0.45, l)), c: Math.max(c, 0.09), h: h + shift[harmony] });
 }
 
+/**
+ * OKLCH components in the DTCG 2025.10 shape: [L, C, H]. Hue is "none" for an
+ * achromatic colour, where it carries no information, which the format allows.
+ */
+export function oklchComponents(hex: string): [number, number, number | "none"] {
+  const { l, c, h } = hexToOklch(hex);
+  const round = (n: number, places: number) => Number(n.toFixed(places));
+  const chroma = round(c, 4);
+  return [round(l, 4), chroma, chroma === 0 ? "none" : round(h, 3)];
+}
+
+/** CSS `oklch()` for a hex, the form shadcn themes are written in. */
+export function oklchCss(hex: string): string {
+  const [l, c, h] = oklchComponents(hex);
+  return `oklch(${l} ${c} ${h === "none" ? 0 : h})`;
+}
+
+/** WCAG 2.x relative luminance, 0 (black) to 1 (white). */
+export function relativeLuminance(hex: string): number {
+  const [r, g, b] = hexToRgb(hex).map(toLinear) as [number, number, number];
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** WCAG 2.x contrast ratio between two colours, 1 to 21. */
+export function contrastRatio(a: string, b: string): number {
+  const la = relativeLuminance(a);
+  const lb = relativeLuminance(b);
+  const [hi, lo] = la >= lb ? [la, lb] : [lb, la];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
 export function randomSeed(): string {
   const h = Math.floor(Math.random() * 360);
   const c = 0.1 + Math.random() * 0.14;

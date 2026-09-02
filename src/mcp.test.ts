@@ -17,6 +17,7 @@ import { agentRule, designBrief, dtcgTokens } from "./context.ts";
 import { contextArtifacts, exportCss, exportFonts, exportTailwind } from "./export.ts";
 import { listProjects, MUTE_ENV_VAR } from "./projects.ts";
 import { loadSystem, saveSystem } from "./storage.ts";
+import { shadcnRegistryItem } from "./shadcn.ts";
 import { FIXTURE_VIBE_DS } from "./test/fixtures.ts";
 import { LOOKS } from "./studio/looks.ts";
 import { VIBES } from "./vibes.ts";
@@ -76,6 +77,7 @@ describe("runTool", () => {
       ["tailwind", () => exportTailwind(FIXTURE_VIBE_DS)],
       ["fonts", () => exportFonts(FIXTURE_VIBE_DS)],
       ["dtcg", () => dtcgTokens(FIXTURE_VIBE_DS)],
+      ["shadcn", () => shadcnRegistryItem(FIXTURE_VIBE_DS)],
       ["json", () => JSON.stringify(FIXTURE_VIBE_DS, null, 2)],
     ] as const)("format=%s matches calling the exporter directly", async (format, expected) => {
       const out = await runTool("get_tokens", { name: FIXTURE_VIBE_DS.name, format });
@@ -89,7 +91,7 @@ describe("runTool", () => {
 
     it("throws a specific error for an unknown format", async () => {
       await expect(runTool("get_tokens", { name: FIXTURE_VIBE_DS.name, format: "yaml" })).rejects.toThrow(
-        `Unknown format "yaml". Use design-md | css | tailwind | fonts | dtcg | json.`
+        `Unknown format "yaml". Use design-md | css | tailwind | fonts | dtcg | shadcn | json.`
       );
     });
   });
@@ -344,13 +346,28 @@ describe("apply_to_project", () => {
     return dir;
   };
 
-  it("writes design.md and tokens.json into the target project", async () => {
+  it("writes DESIGN.md, tokens.json and shadcn.json into the target project", async () => {
     const dir = await projectDir("app");
     const out = await applyToProject({ name: FIXTURE_VIBE_DS.name, directory: dir });
-    expect(out).toContain(join(dir, "design.md"));
+    expect(out).toContain(join(dir, "DESIGN.md"));
     expect(out).toContain(join(dir, "tokens.json"));
-    expect(await readFile(join(dir, "design.md"), "utf8")).toBe(designBrief(FIXTURE_VIBE_DS));
+    expect(out).toContain(join(dir, "shadcn.json"));
+    expect(await readFile(join(dir, "DESIGN.md"), "utf8")).toBe(designBrief(FIXTURE_VIBE_DS));
     expect(await readFile(join(dir, "tokens.json"), "utf8")).toBe(dtcgTokens(FIXTURE_VIBE_DS));
+    expect(await readFile(join(dir, "shadcn.json"), "utf8")).toBe(shadcnRegistryItem(FIXTURE_VIBE_DS));
+  });
+
+  it("leaves out a standard file on request, and rejects an unknown exclude entry", async () => {
+    const dir = await projectDir("app");
+    await applyToProject({ name: FIXTURE_VIBE_DS.name, directory: dir, exclude: ["shadcn.json"] });
+    await expect(readFile(join(dir, "shadcn.json"), "utf8")).rejects.toThrow();
+    expect(await readFile(join(dir, "DESIGN.md"), "utf8")).toBe(designBrief(FIXTURE_VIBE_DS));
+    await expect(applyToProject({ name: FIXTURE_VIBE_DS.name, directory: dir, exclude: ["design.md"] })).rejects.toThrow(
+      /Invalid exclude entry/
+    );
+    await expect(applyToProject({ name: FIXTURE_VIBE_DS.name, directory: dir, exclude: "shadcn.json" })).rejects.toThrow(
+      /expected an array/
+    );
   });
 
   it("returns the same paste-in rule the CLI prints, so the two cannot drift", async () => {
@@ -395,7 +412,7 @@ describe("apply_to_project", () => {
     await expect(applyToProject({ name: FIXTURE_VIBE_DS.name, directory: missing })).rejects.toThrow(
       /Directory does not exist/
     );
-    await expect(readFile(join(missing, "design.md"), "utf8")).rejects.toThrow();
+    await expect(readFile(join(missing, "DESIGN.md"), "utf8")).rejects.toThrow();
   });
 
   it("refuses a path that is a file, not a directory", async () => {
@@ -407,7 +424,7 @@ describe("apply_to_project", () => {
   it("refuses an unknown system before touching the disk", async () => {
     const dir = await projectDir("app");
     await expect(applyToProject({ name: "nope", directory: dir })).rejects.toThrow(/Design system not found/);
-    await expect(readFile(join(dir, "design.md"), "utf8")).rejects.toThrow();
+    await expect(readFile(join(dir, "DESIGN.md"), "utf8")).rejects.toThrow();
   });
 
   it("leaves a file kernic did not write alone, and says exactly which one", async () => {
@@ -419,8 +436,8 @@ describe("apply_to_project", () => {
     expect(out).toContain("Left alone");
     expect(out).toContain("tokens.json");
     expect(out).toContain("overwrite: true");
-    // The file it does own still gets written.
-    expect(await readFile(join(dir, "design.md"), "utf8")).toBe(designBrief(FIXTURE_VIBE_DS));
+    // The files it does own still get written.
+    expect(await readFile(join(dir, "DESIGN.md"), "utf8")).toBe(designBrief(FIXTURE_VIBE_DS));
   });
 
   it("replaces a foreign file only when overwrite is explicitly true, and reports it", async () => {
@@ -441,11 +458,12 @@ describe("apply_to_project", () => {
 
   it("writes nothing and says so when every file is someone else's", async () => {
     const dir = await projectDir("app");
-    await writeFile(join(dir, "design.md"), "# mine", "utf8");
+    await writeFile(join(dir, "DESIGN.md"), "# mine", "utf8");
     await writeFile(join(dir, "tokens.json"), "{}", "utf8");
+    await writeFile(join(dir, "shadcn.json"), "{}", "utf8");
     const out = await applyToProject({ name: FIXTURE_VIBE_DS.name, directory: dir });
     expect(out).toContain("Wrote nothing");
-    expect(await readFile(join(dir, "design.md"), "utf8")).toBe("# mine");
+    expect(await readFile(join(dir, "DESIGN.md"), "utf8")).toBe("# mine");
     expect(await listProjects()).toEqual([]);
   });
 
@@ -458,7 +476,7 @@ describe("apply_to_project", () => {
       path: dir,
       system: FIXTURE_VIBE_DS.name,
       appliedAt: "2026-01-01T00:00:00.000Z",
-      files: ["design.md", "tokens.json"],
+      files: ["DESIGN.md", "tokens.json", "shadcn.json"],
     });
   });
 
@@ -466,7 +484,7 @@ describe("apply_to_project", () => {
     const dir = await projectDir("app");
     await writeFile(join(dir, "tokens.json"), '{"mine":true}', "utf8");
     await applyToProject({ name: FIXTURE_VIBE_DS.name, directory: dir });
-    expect((await listProjects())[0].files).toEqual(["design.md"]);
+    expect((await listProjects())[0].files).toEqual(["DESIGN.md", "shadcn.json"]);
   });
 
   it("says nothing about a portfolio on the first project", async () => {
@@ -516,7 +534,8 @@ describe("create_system", () => {
     expect(out).toContain('Created "from-vibe"');
     const saved = await loadSystem("from-vibe");
     expect(saved?.vibe).toBe("tech");
-    expect(saved?.schemaVersion).toBe(1);
+    expect(saved?.schemaVersion).toBe(2);
+    expect(saved?.motion.preset).toBe("brisk");
   });
 
   it("creates and saves a system from a look, tagged with the look's vibe family", async () => {

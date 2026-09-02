@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteSystem, listSystems, loadSystem, normalizeName, saveSystem } from "./storage.ts";
+import { migrateSystem } from "./tokens.ts";
 import type { DesignSystem } from "./types.ts";
 
 const sampleDs = (name: string): DesignSystem => ({
@@ -53,17 +54,19 @@ describe("storage CRUD", () => {
   it("round-trips a saved system through loadSystem", async () => {
     const ds = sampleDs("roundtrip");
     await saveSystem(ds);
-    expect(await loadSystem("roundtrip")).toEqual(ds);
+    expect(await loadSystem("roundtrip")).toEqual(migrateSystem(ds));
   });
 
-  it("backfills a missing schemaVersion on load without touching other fields", async () => {
+  it("brings a file with no schemaVersion up to version 2 on load without touching other fields", async () => {
     await mkdir(join(dir, ".config", "kernic", "systems"), { recursive: true });
     const raw = { ...sampleDs("legacy-file") };
     delete (raw as Partial<DesignSystem>).schemaVersion;
     await writeFile(join(dir, ".config", "kernic", "systems", "legacy-file.json"), JSON.stringify(raw));
     const loaded = await loadSystem("legacy-file");
-    expect(loaded?.schemaVersion).toBe(1);
+    expect(loaded?.schemaVersion).toBe(2);
     expect(loaded?.name).toBe("legacy-file");
+    expect(loaded?.shadows.md.light[0].color).toBe(loaded?.colors.neutral["950"]);
+    expect(loaded?.spacing.unit).toBe("0.25rem");
   });
 
   it("returns null for a missing system rather than throwing", async () => {

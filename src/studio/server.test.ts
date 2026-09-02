@@ -309,7 +309,7 @@ describe("apiSave", () => {
     expect(saveSystem).not.toHaveBeenCalled();
   });
 
-  it("normalizes the name, stamps schemaVersion 1, and saves on success", async () => {
+  it("normalizes the name, stamps schemaVersion 2, and saves on success", async () => {
     const saveSystem = vi.fn();
     const result = await apiSave(
       { name: "My Brand!!", colors: FIXTURE_VIBE_DS.colors, fonts: FIXTURE_VIBE_DS.fonts, semantic: FIXTURE_VIBE_DS.semantic, radius: FIXTURE_VIBE_DS.radius, typeScale: FIXTURE_VIBE_DS.typeScale },
@@ -318,7 +318,8 @@ describe("apiSave", () => {
     expect(result.status).toBe(200);
     expect((result.body as any).name).toBe("my-brand");
     expect(saveSystem).toHaveBeenCalledOnce();
-    expect(saveSystem.mock.calls[0][0].schemaVersion).toBe(1);
+    expect(saveSystem.mock.calls[0][0].schemaVersion).toBe(2);
+    expect(saveSystem.mock.calls[0][0].shadows).toBeDefined();
   });
 });
 
@@ -337,7 +338,8 @@ describe("validateSystemBody", () => {
   it("accepts a realistic system produced by the client", () => {
     const ds = validateSystemBody(valid());
     expect(ds.name).toBe("valid-system");
-    expect(ds.schemaVersion).toBe(1);
+    expect(ds.schemaVersion).toBe(2);
+    expect(ds.motion.preset).toBe("brisk");
     expect(ds.fonts).toEqual(FIXTURE_VIBE_DS.fonts);
   });
 

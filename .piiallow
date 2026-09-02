@@ -1,0 +1,5 @@
+# Known-safe patterns for the PII guard (~/.config/git/hooks/pre-commit).
+# npm lockfile integrity hashes
+integrity": "sha
+# OKLab / OKLCH matrix constants and other long decimal literals in src/color.ts
+[0-9]\.[0-9]{8,}

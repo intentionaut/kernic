@@ -318,7 +318,9 @@ export function fixCommands(record: ProjectRecord): string[] {
   const path = quote(record.path);
   const system = quote(record.system);
   const commands: string[] = [];
-  if (record.files.includes("design.md") || record.files.includes("tokens.json")) {
+  // DESIGN.md is the current name; design.md is what kernic wrote before 0.2.0
+  // and is still in older registries.
+  if (["DESIGN.md", "design.md", "tokens.json", "shadcn.json"].some((f) => record.files.includes(f))) {
     commands.push(`kernic context ${system} -o ${path}`);
   }
   const extras: Array<[string, string]> = [

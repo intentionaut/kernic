@@ -57,9 +57,11 @@ describe("buildFromVibe", () => {
     expect(ds).toMatchSnapshot();
   });
 
-  it("always sets schemaVersion to 1 and includes gradients", () => {
+  it("always sets schemaVersion to 2, with the token groups, and includes gradients", () => {
     const ds = buildFromVibe("test", getVibe("tech")!);
-    expect(ds.schemaVersion).toBe(1);
+    expect(ds.schemaVersion).toBe(2);
+    expect(ds.motion.preset).toBe(getVibe("tech")!.motion);
+    expect(ds.shadows.md.light[0].color).toBe(ds.colors.neutral["950"]);
     expect(ds.gradients).toBeDefined();
     expect(Object.keys(ds.gradients!).length).toBeGreaterThan(0);
   });

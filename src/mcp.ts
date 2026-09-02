@@ -7,6 +7,7 @@ import { buildDesignSystem, buildFromVibe } from "./build.ts";
 import { buildNeutral, buildRamp } from "./color.ts";
 import { agentRule, designBrief, dtcgTokens } from "./context.ts";
 import {
+  CONTEXT_FILES,
   contextArtifacts,
   exportCss,
   exportFonts,
@@ -15,8 +16,10 @@ import {
   planArtifacts,
   writeArtifacts,
   type Artifact,
+  type ContextFile,
   type ExportFormat,
 } from "./export.ts";
+import { shadcnRegistryItem } from "./shadcn.ts";
 import { claimNotice, multiProjectFingerprint, multiProjectNote, recordApplication } from "./projects.ts";
 import { listSystems, loadSystem, normalizeName, saveSystem } from "./storage.ts";
 import { LOOKS } from "./studio/looks.ts";
@@ -35,8 +38,8 @@ import { RADIUS_PRESETS, VIBES, getVibe } from "./vibes.ts";
  * those two touch is validated here rather than trusted from the model.
  */
 
-/** Stylesheet formats apply_to_project will write alongside the brief. */
-const APPLY_EXTRAS = ["css", "tailwind"] as const;
+/** Stylesheet formats apply_to_project will write alongside the standard set. */
+const APPLY_EXTRAS = ["css", "tailwind", "fonts"] as const;
 type ApplyExtra = (typeof APPLY_EXTRAS)[number];
 
 /** Real package version, so serverInfo doesn't drift from what's published. */
@@ -69,16 +72,16 @@ const TOOL_DEFS = [
   {
     name: "get_tokens",
     description:
-      "Export a design system in a usable format, into the conversation. Prefer design-md for coding sessions: it includes the adherence rules agents must follow. Use apply_to_project instead when the files should be saved into the user's project.",
+      "Export a design system in a usable format, into the conversation. Prefer design-md for coding sessions: it is the DESIGN.md spec file, tokens in the front matter and the rules agents must follow below. Use apply_to_project instead when the files should be saved into the user's project.",
     inputSchema: {
       type: "object" as const,
       properties: {
         name: { type: "string", description: "Design system name" },
         format: {
           type: "string",
-          enum: ["design-md", "css", "tailwind", "fonts", "dtcg", "json"],
+          enum: ["design-md", "css", "tailwind", "fonts", "dtcg", "shadcn", "json"],
           description:
-            "design-md = agent brief + rules; css = CSS vars; tailwind = v4 @theme; fonts = <link> tags; dtcg = W3C design tokens; json = raw kernic file",
+            "design-md = DESIGN.md (spec front matter + rules); css = CSS vars; tailwind = v4 @theme; fonts = <link> tags; dtcg = W3C design tokens 2025.10; shadcn = registry:style item; json = raw kernic file",
         },
       },
       required: ["name"],
@@ -87,7 +90,7 @@ const TOOL_DEFS = [
   {
     name: "apply_to_project",
     description:
-      "Write a design system into a project on disk: design.md (the agent brief and its rules) and tokens.json (W3C DTCG tokens), optionally tokens.css and tailwind.css. Use this when the user asks to set up, apply, or use a design system in the app you are working on — it is what makes the system stick across future sessions, where get_tokens only puts it in this conversation. Returns the one-line rule to paste into CLAUDE.md / AGENTS.md / .cursorrules. Files kernic did not write are never overwritten unless overwrite is true; they are reported back instead.",
+      "Write a design system into a project on disk: DESIGN.md (the spec file coding agents read, tokens plus rules), tokens.json (W3C DTCG 2025.10 tokens) and shadcn.json (a shadcn registry:style item), optionally tokens.css, tailwind.css and fonts.html. Use this when the user asks to set up, apply, or use a design system in the app you are working on — it is what makes the system stick across future sessions, where get_tokens only puts it in this conversation. Returns the one-line rule to paste into CLAUDE.md / AGENTS.md / .cursorrules. Files kernic did not write are never overwritten unless overwrite is true; they are reported back instead.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -101,7 +104,13 @@ const TOOL_DEFS = [
           type: "array",
           items: { type: "string", enum: [...APPLY_EXTRAS] },
           description:
-            "Extra stylesheets to write: 'css' → tokens.css, 'tailwind' → tailwind.css. Omit for just the brief and tokens.",
+            "Extra stylesheets to write: 'css' → tokens.css, 'tailwind' → tailwind.css, 'fonts' → fonts.html. Omit for just the standard set.",
+        },
+        exclude: {
+          type: "array",
+          items: { type: "string", enum: [...CONTEXT_FILES] },
+          description:
+            "Standard files to leave out, e.g. ['shadcn.json'] for a project that does not use shadcn. Omit to write all three.",
         },
         overwrite: {
           type: "boolean",
@@ -233,6 +242,19 @@ function parseExtras(include: unknown): ApplyExtra[] {
   return out;
 }
 
+function parseExclude(exclude: unknown): ContextFile[] {
+  if (exclude === undefined || exclude === null) return [];
+  if (!Array.isArray(exclude)) throw new Error(`Invalid exclude: expected an array of ${CONTEXT_FILES.join(" | ")}.`);
+  const out: ContextFile[] = [];
+  for (const entry of exclude) {
+    if (typeof entry !== "string" || !(CONTEXT_FILES as readonly string[]).includes(entry)) {
+      throw new Error(`Invalid exclude entry ${JSON.stringify(entry)}. Use ${CONTEXT_FILES.join(", ")}.`);
+    }
+    if (!out.includes(entry as ContextFile)) out.push(entry as ContextFile);
+  }
+  return out;
+}
+
 export interface ApplyOptions {
   cwd?: string;
   home?: string;
@@ -253,7 +275,8 @@ export async function applyToProject(args: Record<string, any>, opts: ApplyOptio
   if (!info.isDirectory()) throw new Error(`Not a directory: ${dir}.`);
 
   const extras = parseExtras(args.include);
-  const candidates = contextArtifacts(ds, extras as readonly ExportFormat[]);
+  const exclude = parseExclude(args.exclude);
+  const candidates = contextArtifacts(ds, extras as readonly ExportFormat[], exclude);
   const overwrite = args.overwrite === true;
 
   // safeJoin throws if a filename could ever resolve outside dir. Ownership is
@@ -289,7 +312,7 @@ export async function applyToProject(args: Record<string, any>, opts: ApplyOptio
       "",
       `  ${agentRule(ds)}`,
       "",
-      "For the rest of this session: read design.md and use only its tokens."
+      "For the rest of this session: read DESIGN.md and use only its tokens."
     );
 
     const result = await recordApplication({
@@ -392,10 +415,12 @@ export async function runTool(name: string, args: Record<string, any>): Promise<
           return exportFonts(ds);
         case "dtcg":
           return dtcgTokens(ds);
+        case "shadcn":
+          return shadcnRegistryItem(ds);
         case "json":
           return JSON.stringify(ds, null, 2);
         default:
-          throw new Error(`Unknown format "${args.format}". Use design-md | css | tailwind | fonts | dtcg | json.`);
+          throw new Error(`Unknown format "${args.format}". Use design-md | css | tailwind | fonts | dtcg | shadcn | json.`);
       }
     }
     case "apply_to_project":
