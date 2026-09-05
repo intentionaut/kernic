@@ -51,6 +51,25 @@ Hard rules. An entry that breaks one of them does not ship.
 
 ---
 
+## 0.3.2 (2026-09-05)
+
+`DESIGN.md` has always told you to build with `--primary`, `--primary-hover`
+and `--accent`. Now every CSS export actually defines them.
+
+**What this gives you:**
+
+- **`--primary`, `--primary-hover` and `--accent` as real variables.**
+  `tokens.css`, `tailwind.css` and the Tailwind `@theme` block all publish
+  them, aliased onto the same ramp stops `DESIGN.md` already names. Write
+  `background: var(--primary)` and it paints, in a Tailwind class or in plain
+  CSS.
+
+Re-run `kernic export` or `kernic context` on a project to pick these up; a
+`tokens.css` written by an earlier kernic keeps working but won't have them
+until you regenerate it.
+
+---
+
 ## 0.3.1 (2026-09-02)
 
 Studio is where you decide what a system looks like. It now shows that system

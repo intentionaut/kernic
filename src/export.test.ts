@@ -36,6 +36,13 @@ describe("exportCss", () => {
     expect(lines.length).toBe(RAMP_STOPS.length * 3);
   });
 
+  it("emits --primary, --primary-hover and --accent aliasing the same ramp stops DESIGN.md's frontmatter promises", () => {
+    const out = exportCss(FIXTURE_VIBE_DS);
+    expect(out).toContain("--primary: var(--color-primary-600);");
+    expect(out).toContain("--primary-hover: var(--color-primary-500);");
+    expect(out).toContain("--accent: var(--color-accent-500);");
+  });
+
   it("omits the gradient section when gradients is undefined", () => {
     expect(exportCss(FIXTURE_EDGE_DS)).not.toContain("/* Gradients */");
   });
@@ -66,6 +73,16 @@ describe("exportTailwind", () => {
 
   it("emits --background-image-* lines when gradients are present", () => {
     expect(exportTailwind(FIXTURE_VIBE_DS)).toMatch(/--background-image-primary:/);
+  });
+
+  it("emits --primary, --primary-hover and --accent for both modes, plus @theme inline aliases", () => {
+    const out = exportTailwind(FIXTURE_VIBE_DS);
+    expect(out.match(/--primary: var\(--color-primary-600\);/g)?.length).toBe(2);
+    expect(out.match(/--primary-hover: var\(--color-primary-500\);/g)?.length).toBe(2);
+    expect(out.match(/--accent: var\(--color-accent-500\);/g)?.length).toBe(2);
+    expect(out).toContain("--color-primary: var(--primary);");
+    expect(out).toContain("--color-primary-hover: var(--primary-hover);");
+    expect(out).toContain("--color-accent: var(--accent);");
   });
 });
 

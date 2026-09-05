@@ -57,6 +57,11 @@ exports[`exportCss > matches a stable snapshot for the vibe fixture 1`] = `
   --dark-border: #303d3e;
   --dark-ring: #0094a8;
 
+  /* Primary & accent aliases — keep in sync with designFrontmatter() in context.ts */
+  --primary: var(--color-primary-600);
+  --primary-hover: var(--color-primary-500);
+  --accent: var(--color-accent-500);
+
   /* Gradients */
   --gradient-primary: linear-gradient(120deg, #a68aff 0%, #0094a8 52%, #00434d 100%);
   --gradient-mesh: radial-gradient(60% 85% at 12% 8%, #c0b0ff55 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #5d82b663 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #0094a840 0%, transparent 62%), linear-gradient(180deg, #1e2929, #0d1616);
@@ -198,6 +203,9 @@ exports[`exportTailwind > matches a stable snapshot for the vibe fixture 1`] = `
   --muted-foreground: #5b6d6e;
   --border-default: #cddadb;
   --ring: #0094a8;
+  --primary: var(--color-primary-600);
+  --primary-hover: var(--color-primary-500);
+  --accent: var(--color-accent-500);
   --elevation-xs: 0px 1px 2px 0px #0d161614;
   --elevation-sm: 0px 1px 3px 0px #0d16161a, 0px 1px 2px -1px #0d16161a;
   --elevation-md: 0px 4px 6px -1px #0d16161a, 0px 2px 4px -2px #0d16161a;
@@ -212,6 +220,9 @@ exports[`exportTailwind > matches a stable snapshot for the vibe fixture 1`] = `
   --muted-foreground: #94a5a6;
   --border-default: #303d3e;
   --ring: #0094a8;
+  --primary: var(--color-primary-600);
+  --primary-hover: var(--color-primary-500);
+  --accent: var(--color-accent-500);
   --elevation-xs: 0px 1px 2px 0px #0d161666;
   --elevation-sm: 0px 1px 3px 0px #0d161673, 0px 1px 2px -1px #0d161673;
   --elevation-md: 0px 4px 6px -1px #0d161680, 0px 2px 4px -2px #0d161680;
@@ -226,6 +237,9 @@ exports[`exportTailwind > matches a stable snapshot for the vibe fixture 1`] = `
   --color-muted: var(--muted-foreground);
   --color-border-default: var(--border-default);
   --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
   --shadow-xs: var(--elevation-xs);
   --shadow-sm: var(--elevation-sm);
   --shadow-md: var(--elevation-md);

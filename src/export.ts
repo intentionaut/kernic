@@ -37,6 +37,19 @@ function colorVars(ds: DesignSystem): string[] {
     const hex = typeof value === "string" ? value : value.dark;
     lines.push(`  --dark-${css}: ${hex};`);
   }
+  // DESIGN.md's frontmatter promises these three under `colors:` as aliases
+  // onto the ramp (colorRef in context.ts). If this export does not also
+  // publish them as real custom properties, an agent following DESIGN.md's
+  // own instruction ("use only its tokens, never invent raw hex") reaches for
+  // var(--primary) and gets nothing: the property is invalid, the declaration
+  // it sits in drops silently, and CSS fails asymmetrically (background never
+  // paints, border-color falls back to currentColor). See
+  // KERNIC-NOTES-FROM-TOME.md #1.
+  lines.push("");
+  lines.push("  /* Primary & accent aliases — keep in sync with designFrontmatter() in context.ts */");
+  lines.push(`  --primary: var(--color-primary-600);`);
+  lines.push(`  --primary-hover: var(--color-primary-500);`);
+  lines.push(`  --accent: var(--color-accent-500);`);
   if (ds.gradients && Object.keys(ds.gradients).length > 0) {
     lines.push("");
     lines.push("  /* Gradients */");
@@ -181,6 +194,11 @@ export function exportTailwind(ds: DesignSystem): string {
     `  --muted-foreground: ${s.mutedText[mode]};`,
     `  --border-default: ${s.border[mode]};`,
     `  --ring: ${s.ring};`,
+    // See the matching comment in colorVars() above: DESIGN.md promises these
+    // as tokens, so every CSS-producing export must publish them for real.
+    `  --primary: var(--color-primary-600);`,
+    `  --primary-hover: var(--color-primary-500);`,
+    `  --accent: var(--color-accent-500);`,
     ...shadowVars(ds, mode, "--shadow-").map((line) => line.replace("--shadow-", "--elevation-")),
   ];
   return [
@@ -207,6 +225,9 @@ export function exportTailwind(ds: DesignSystem): string {
     "  --color-muted: var(--muted-foreground);",
     "  --color-border-default: var(--border-default);",
     "  --color-ring: var(--ring);",
+    "  --color-primary: var(--primary);",
+    "  --color-primary-hover: var(--primary-hover);",
+    "  --color-accent: var(--accent);",
     ...SHADOW_LEVELS.map((l) => `  --shadow-${l}: var(--elevation-${l});`),
     "}",
     "",
