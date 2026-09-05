@@ -227,7 +227,7 @@ async function pickFont(
 }
 
 export async function runWizard(nameArg?: string): Promise<DesignSystem> {
-  p.intro("kernic — kern your whole app");
+  p.intro("kernic — professional design for vibe coders");
 
   // 1. Vibe
   const vibeId = check(

@@ -1,8 +1,8 @@
 # kernic
 
-**Kern your whole app.**
+**Professional design for vibe coders.**
 
-In typography, *kerning* is the adjustment of space between letters until text feels right — invisible when done well, amateurish when ignored. kernic does the same for your entire application: one design system, tuned once from the terminal, applied everywhere.
+kernic builds your app a real design system — palette, fonts, spacing, motion — tuned once from the terminal and applied everywhere, so it stops looking like a default template.
 
 Pick a vibe, tune a palette in your terminal, choose Google Fonts, then export tokens as CSS custom properties, a Tailwind v4 `@theme`, W3C design tokens, a `DESIGN.md` for coding agents, or a shadcn theme.
 

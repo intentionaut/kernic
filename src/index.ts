@@ -66,13 +66,13 @@ const program = new Command();
 
 program
   .name("kernic")
-  .description("Kern your whole app: a polished design system: palettes, Google Fonts, vibes. Export CSS vars, Tailwind v4, JSON tokens.")
+  .description("Professional design for vibe coders: a polished design system: palettes, Google Fonts, vibes. Export CSS vars, Tailwind v4, JSON tokens.")
   .version(packageVersion());
 
 // Default action = Studio (the visual editor)
 program.action(async () => {
   const { startStudio } = await import("./studio/server.ts");
-  p.intro("kernic — kern your whole app");
+  p.intro("kernic — professional design for vibe coders");
   p.log.message("Opening Studio in your browser. Prefer the terminal? Run `kernic wizard`.");
   await startStudio(undefined, { open: true });
 });
@@ -112,7 +112,7 @@ program
     }
     const ds = buildFromVibe(normalizedName, vibe);
     await saveSystem(ds);
-    p.outro(`Kerned "${normalizedName}" (${vibe.label}). Try: kernic show ${normalizedName}`);
+    p.outro(`Saved "${normalizedName}" (${vibe.label}). Try: kernic show ${normalizedName}`);
   });
 
 program
