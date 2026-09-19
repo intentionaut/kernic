@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/big-pickle",
+  "permission": {
+    "*": "ask",
+    "edit": "allow",
+    "bash": "ask",
+    "webfetch": "allow"
+  }
+}
