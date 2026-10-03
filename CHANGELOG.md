@@ -10,6 +10,9 @@ improve the vibe-coded web.
 Written for the person using kernic, not for the person who wrote the commit.
 Hard rules. An entry that breaks one of them does not ship.
 
+`docs/public-writing.md` covers every release note and pull request in this
+repo. The rules below add to it.
+
 1. **Benefit first, mechanism second.** The reader is deciding whether to
    upgrade, not reviewing the diff. The headline is what they can now do, in
    their words. No internal names, no function names, no file paths in a
