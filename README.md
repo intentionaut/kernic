@@ -182,6 +182,10 @@ Built in public; the build stories land first in [Intentionaut](https://intentio
 
 PRs welcome — especially new vibes and looks, and export targets (SCSS, Figma variables). This codebase is and stays 100% MIT. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the testing expectations.
 
+## Support
+
+These projects are free to use. Tips go toward the time I spend building and maintaining them: [ko-fi.com/intentionaut](https://ko-fi.com/intentionaut)
+
 ## License
 
 [MIT](LICENSE)
