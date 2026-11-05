@@ -182,6 +182,18 @@ Built in public; the build stories land first in [Intentionaut](https://intentio
 
 PRs welcome — especially new vibes and looks, and export targets (SCSS, Figma variables). This codebase is and stays 100% MIT. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the testing expectations.
 
+## Contributing in ten minutes
+
+The quickest first pull request is a new look. A look is a finished decision: colors, fonts, corners and text sizes, all chosen to go together.
+
+1. Fork the repo, clone your fork, and run `npm install`.
+2. In `src/studio/looks.ts`, copy any entry in `LOOKS`. Give it a new `id` and `label`, keep a `vibeId` that already exists, and set your own colors, fonts and corners. Pick fonts from Google Fonts, like the other looks.
+3. In `src/studio/looks.test.ts`, raise the look count by one. It appears twice.
+4. Run `npm test && npx tsc --noEmit`. It passes when both finish with no errors. If one fails, the output names the line to fix.
+5. Open a pull request against `main` and say in one line what the look is for.
+
+Stuck? Open an issue and say where. The testing and writing rules are in [CONTRIBUTING.md](./CONTRIBUTING.md).
+
 ## Support
 
 These projects are free to use. Tips go toward the time I spend building and maintaining them: [ko-fi.com/intentionaut](https://ko-fi.com/intentionaut)

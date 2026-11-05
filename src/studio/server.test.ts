@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // top of the file regardless of this position.
 vi.mock("node:child_process", () => ({ spawn: vi.fn() }));
 import { spawn } from "node:child_process";
+import { LOOKS } from "./looks.ts";
 const spawnMock = spawn as unknown as ReturnType<typeof vi.fn>;
 
 // The global fetch guard in src/test/setup.ts exists to stop tests from
@@ -107,7 +108,7 @@ describe("vibePublic", () => {
 describe("apiLooks", () => {
   it("returns exactly one preview per LOOKS entry, each with rendered colors", async () => {
     const { looks } = await apiLooks();
-    expect(looks.length).toBe(33);
+    expect(looks.length).toBe(LOOKS.length);
     expect(looks[0].colors.primary["500"]).toMatch(/^#[0-9a-f]{6}$/i);
   });
 });
