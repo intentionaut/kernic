@@ -1,7 +1,7 @@
 {
   "name": "kernic",
   "version": "0.3.2",
-  "description": "Generate a DESIGN.md, shadcn theme and Tailwind v4 theme from the terminal. Also writes W3C design tokens and CSS vars, with a palette picker, Google Fonts and vibes. Free CLI and MCP server for Claude Code and Cursor.",
+  "description": "Writes a DESIGN.md, a shadcn theme and a Tailwind v4 theme from the terminal. Also exports W3C design tokens and CSS variables. Pick a palette and Google Fonts, or start from a vibe. Free CLI, MIT.",
   "type": "module",
   "bin": {
     "kernic": "dist/index.js"
