@@ -1,7 +1,7 @@
 {
   "name": "kernic",
   "version": "0.3.2",
-  "description": "Professional design for vibe coders — design systems from the terminal. Palette picker, Google Fonts, vibes; free forever CLI. Writes DESIGN.md, W3C design tokens, a shadcn theme, CSS vars and Tailwind v4.",
+  "description": "Generate a DESIGN.md, shadcn theme and Tailwind v4 theme from the terminal. Also writes W3C design tokens and CSS vars, with a palette picker, Google Fonts and vibes. Free CLI and MCP server for Claude Code and Cursor.",
   "type": "module",
   "bin": {
     "kernic": "dist/index.js"
@@ -44,7 +44,15 @@
     "google-fonts",
     "palette",
     "vibe-coding",
-    "w3c-design-tokens"
+    "w3c-design-tokens",
+    "design-md",
+    "shadcn",
+    "shadcn-theme",
+    "tailwind-v4",
+    "mcp",
+    "claude-code",
+    "cursor",
+    "oklch"
   ],
   "license": "MIT",
   "dependencies": {
