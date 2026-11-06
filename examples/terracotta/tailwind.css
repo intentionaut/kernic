@@ -1,0 +1,161 @@
+/* kernic — "terracotta" Tailwind v4 theme (vibe: earthy) */
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;500;600;700&display=swap");
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #fcf5f0;
+  --surface: #f2e9e3;
+  --foreground: #18130e;
+  --muted-foreground: #73665d;
+  --border-default: #dfd5ce;
+  --ring: #9e511d;
+  --primary: var(--color-primary-600);
+  --primary-hover: var(--color-primary-500);
+  --accent: var(--color-accent-500);
+  --elevation-xs: 0px 1px 2px 0px #18130e14;
+  --elevation-sm: 0px 1px 3px 0px #18130e1a, 0px 1px 2px -1px #18130e1a;
+  --elevation-md: 0px 4px 6px -1px #18130e1a, 0px 2px 4px -2px #18130e1a;
+  --elevation-lg: 0px 10px 15px -3px #18130e1a, 0px 4px 6px -4px #18130e1a;
+  --elevation-xl: 0px 20px 25px -5px #18130e1a, 0px 8px 10px -6px #18130e1a;
+}
+
+.dark {
+  --background: #18130e;
+  --surface: #2c251f;
+  --foreground: #fcf5f0;
+  --muted-foreground: #ab9f95;
+  --border-default: #413932;
+  --ring: #9e511d;
+  --primary: var(--color-primary-600);
+  --primary-hover: var(--color-primary-500);
+  --accent: var(--color-accent-500);
+  --elevation-xs: 0px 1px 2px 0px #18130e66;
+  --elevation-sm: 0px 1px 3px 0px #18130e73, 0px 1px 2px -1px #18130e73;
+  --elevation-md: 0px 4px 6px -1px #18130e80, 0px 2px 4px -2px #18130e80;
+  --elevation-lg: 0px 10px 15px -3px #18130e8c, 0px 4px 6px -4px #18130e8c;
+  --elevation-xl: 0px 20px 25px -5px #18130e99, 0px 8px 10px -6px #18130e99;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted-foreground);
+  --color-border-default: var(--border-default);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
+  --shadow-xs: var(--elevation-xs);
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
+  --shadow-xl: var(--elevation-xl);
+}
+
+@theme {
+  --color-primary-50: #fff4ef;
+  --color-primary-100: #ffe5d7;
+  --color-primary-200: #fbccb2;
+  --color-primary-300: #eaaf8d;
+  --color-primary-400: #d68e63;
+  --color-primary-500: #bc6b38;
+  --color-primary-600: #9e511d;
+  --color-primary-700: #7b3c0f;
+  --color-primary-800: #5c2b09;
+  --color-primary-900: #3f1b02;
+  --color-primary-950: #250b00;
+  --color-accent-50: #f1faef;
+  --color-accent-100: #e3efe0;
+  --color-accent-200: #cdddc9;
+  --color-accent-300: #b0c5ab;
+  --color-accent-400: #90aa8a;
+  --color-accent-500: #6f8d68;
+  --color-accent-600: #567250;
+  --color-accent-700: #40573b;
+  --color-accent-800: #2f402a;
+  --color-accent-900: #1d2b1a;
+  --color-accent-950: #0d170b;
+  --color-neutral-50: #fcf5f0;
+  --color-neutral-100: #f2e9e3;
+  --color-neutral-200: #dfd5ce;
+  --color-neutral-300: #c6bbb3;
+  --color-neutral-400: #ab9f95;
+  --color-neutral-500: #8e8076;
+  --color-neutral-600: #73665d;
+  --color-neutral-700: #584d45;
+  --color-neutral-800: #413932;
+  --color-neutral-900: #2c251f;
+  --color-neutral-950: #18130e;
+  --background-image-primary: linear-gradient(120deg, #90aa8a 0%, #bc6b38 52%, #5c2b09 100%);
+  --background-image-mesh: radial-gradient(60% 85% at 12% 8%, #b0c5ab55 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #6aa54863 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #bc6b3840 0%, transparent 62%), linear-gradient(180deg, #2c251f, #18130e);
+  --background-image-text: linear-gradient(92deg, #6f8d68 0%, #d68e63 55%, #6aa548 100%);
+
+  --font-heading: "Fraunces", ui-serif, serif;
+  --font-body: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Courier Prime", ui-monospace, monospace;
+
+  --text-xs: 0.800rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.894rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.000rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1.250rem;
+  --text-lg--line-height: 1.4;
+  --text-xl: 1.563rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.953rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 3.052rem;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 4.768rem;
+  --text-4xl--line-height: 1.1;
+  --text-5xl: 7.451rem;
+  --text-5xl--line-height: 1.05;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.04em;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  --spacing: 0.25rem;
+  --spacing-1: 1rem;
+  --spacing-2: 2rem;
+  --spacing-3: 3rem;
+  --spacing-4: 4rem;
+  --spacing-6: 6rem;
+  --spacing-8: 8rem;
+  --spacing-12: 12rem;
+  --spacing-16: 16rem;
+  --spacing-0-5: 0.5rem;
+  --spacing-1-5: 1.5rem;
+
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+  --container-sm: 40rem;
+  --container-md: 48rem;
+  --container-lg: 64rem;
+  --container-xl: 80rem;
+}

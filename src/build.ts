@@ -1,4 +1,5 @@
 import { buildGradients, buildNeutral, buildRamp } from "./color.ts";
+import type { Look } from "./studio/looks.ts";
 import { tokenGroups } from "./tokens.ts";
 import type { DesignSystem, MotionPreset, Ramp } from "./types.ts";
 import { RADIUS_PRESETS, type RadiusStyle, type Vibe } from "./vibes.ts";
@@ -60,6 +61,27 @@ export function buildDesignSystem(params: {
     ...tokenGroups({ vibe: params.vibeId, colors: params.colors }, params.motion),
     gradients: buildGradients(params.colors),
   };
+}
+
+/** A finished look as a DesignSystem. Shared by the MCP create_system tool and the examples folder. */
+export function buildFromLook(look: Look, name: string, createdAt?: string): DesignSystem {
+  const compress = { chromaScale: look.chromaScale ?? undefined, lRange: look.lRange ?? undefined };
+  const colors = {
+    primary: buildRamp(look.primarySeed, compress),
+    accent: buildRamp(look.accentSeed, compress),
+    neutral: buildNeutral(look.neutralTintHue ?? undefined),
+  };
+  return buildDesignSystem({
+    name,
+    vibeId: look.vibeId,
+    colors,
+    darkDefault: look.darkDefault,
+    fonts: look.fonts,
+    radiusStyle: look.radius,
+    radius: RADIUS_PRESETS[look.radius],
+    ratio: look.ratio,
+    createdAt,
+  });
 }
 
 export function buildFromVibe(name: string, vibe: Vibe, fonts?: Partial<DesignSystem["fonts"]>): DesignSystem {
