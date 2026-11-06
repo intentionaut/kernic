@@ -3,8 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, join, parse, resolve, sep } from "node:path";
 import { createInterface } from "node:readline";
-import { buildDesignSystem, buildFromVibe } from "./build.ts";
-import { buildNeutral, buildRamp } from "./color.ts";
+import { buildFromLook, buildFromVibe } from "./build.ts";
 import { agentRule, designBrief, dtcgTokens } from "./context.ts";
 import {
   CONTEXT_FILES,
@@ -24,7 +23,7 @@ import { claimNotice, multiProjectFingerprint, multiProjectNote, recordApplicati
 import { listSystems, loadSystem, normalizeName, saveSystem } from "./storage.ts";
 import { LOOKS } from "./studio/looks.ts";
 import type { DesignSystem } from "./types.ts";
-import { RADIUS_PRESETS, VIBES, getVibe } from "./vibes.ts";
+import { VIBES, getVibe } from "./vibes.ts";
 
 /**
  * Zero-dependency MCP (Model Context Protocol) server over stdio.
@@ -347,22 +346,7 @@ export async function createSystemTool(args: Record<string, any>): Promise<strin
   if (typeof args.look === "string" && args.look.length > 0) {
     const look = LOOKS.find((l) => l.id === args.look);
     if (!look) throw new Error(`Unknown look "${args.look}". Call list_looks for the available ids.`);
-    const compress = { chromaScale: look.chromaScale ?? undefined, lRange: look.lRange ?? undefined };
-    const colors = {
-      primary: buildRamp(look.primarySeed, compress),
-      accent: buildRamp(look.accentSeed, compress),
-      neutral: buildNeutral(look.neutralTintHue ?? undefined),
-    };
-    ds = buildDesignSystem({
-      name,
-      vibeId: look.vibeId,
-      colors,
-      darkDefault: look.darkDefault,
-      fonts: look.fonts,
-      radiusStyle: look.radius,
-      radius: RADIUS_PRESETS[look.radius],
-      ratio: look.ratio,
-    });
+    ds = buildFromLook(look, name);
     source = `look: ${look.label} (${look.id})`;
   } else if (typeof args.vibe === "string" && args.vibe.length > 0) {
     const vibe = getVibe(args.vibe);

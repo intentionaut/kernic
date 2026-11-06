@@ -1,9 +1,7 @@
-import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   DESIGN_MD_HEADINGS,
@@ -17,6 +15,7 @@ import {
   dtcgTokens,
 } from "./context.ts";
 import { FIXED_CREATED_AT, FIXTURE_EDGE_DS, FIXTURE_VIBE_DS } from "./test/fixtures.ts";
+import { lint, linter } from "./test/lint.ts";
 
 // writeContext lives in export.ts (next to the other renderers, so one module
 // owns the format -> filename map). Its tests live in export.test.ts.
@@ -125,7 +124,6 @@ describe("designFrontmatter", () => {
 });
 
 describe("DESIGN.md conforms to Google's spec", () => {
-  const linter = fileURLToPath(new URL("../node_modules/@google/design.md/dist/index.js", import.meta.url));
   let dir: string;
   beforeAll(async () => {
     dir = await mkdtemp(join(tmpdir(), "kernic-designmd-"));
@@ -133,17 +131,6 @@ describe("DESIGN.md conforms to Google's spec", () => {
   afterAll(async () => {
     await rm(dir, { recursive: true, force: true });
   });
-
-  function lint(file: string): { summary: { errors: number; warnings: number } } {
-    let out: string;
-    try {
-      out = execFileSync(process.execPath, [linter, "lint", file], { encoding: "utf8" });
-    } catch (err: any) {
-      out = String(err.stdout ?? "");
-      if (!out.trim()) throw err;
-    }
-    return JSON.parse(out);
-  }
 
   it("ships the linter this test depends on", () => {
     // A missing dev dependency must fail here, in one place, rather than skip.

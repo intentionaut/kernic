@@ -26,4 +26,6 @@ New code — new exported functions, new CLI commands, new Studio API routes —
 - See `src/test/fixtures.ts` for the shared `DesignSystem` fixtures reused across `export.test.ts`, `context.test.ts`, `shadcn.test.ts` and `mcp.test.ts`.
 - The DESIGN.md conformance test spawns Google's linter as a child process; that is the one test allowed to leave the process, and it touches no network.
 
+After changing a look or an export, run `npm run examples` and commit the result.
+
 CI runs `vitest run --coverage` on every push/PR and blocks merge below the project's coverage floor (currently 75% lines/statements/functions, 70% branches — see `vitest.config.ts`). If a change genuinely can't be tested (e.g. it only touches `openBrowser`'s real OS `spawn` call), mock the boundary rather than skipping the test, or explain why in the PR description.
