@@ -37,11 +37,20 @@ export function staleExampleFolders(dir = EXAMPLES_DIR): string[] {
 /** Rewrites every example. Removes a stale folder only if it holds nothing but the two generated files. Returns the file count. */
 export function writeExamples(dir = EXAMPLES_DIR): number {
   for (const folder of staleExampleFolders(dir)) {
-    const held = readdirSync(join(dir, folder));
+    let held: string[] = [];
+    try {
+      held = readdirSync(join(dir, folder));
+    } catch (err: any) {
+      throw new Error(`Could not read examples/${folder}: ${err?.message ?? err}. Check you can write to this folder, then run: npm run examples`);
+    }
     if (!held.every((f) => (EXAMPLE_FILES as readonly string[]).includes(f))) {
       throw new Error(`examples/${folder} holds files kernic did not write. Remove it yourself, then run: npm run examples`);
     }
-    rmSync(join(dir, folder), { recursive: true });
+    try {
+      rmSync(join(dir, folder), { recursive: true });
+    } catch (err: any) {
+      throw new Error(`Could not remove examples/${folder}: ${err?.message ?? err}. Check you can write to this folder, then run: npm run examples`);
+    }
   }
   const files = renderExamples();
   for (const { path, content } of files) {

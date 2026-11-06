@@ -23,7 +23,9 @@ describe("buildFromLook", () => {
   });
 
   it("stamps the clock when no date is given", () => {
-    expect(buildFromLook(LOOKS[0]!, "mine").createdAt).not.toBe(EXAMPLES_CREATED_AT);
+    const { createdAt } = buildFromLook(LOOKS[0]!, "mine");
+    expect(createdAt).not.toBe(EXAMPLES_CREATED_AT);
+    expect(Number.isNaN(Date.parse(createdAt))).toBe(false);
   });
 });
 
@@ -39,7 +41,10 @@ describe("renderExamples", () => {
 
 describe("examples/ folder", () => {
   it("holds one folder per look, no more", () => {
-    expect(staleExampleFolders()).toEqual([]);
+    expect(existsSync(EXAMPLES_DIR), "examples/ is missing. Run: npm run examples").toBe(true);
+    for (const folder of staleExampleFolders()) {
+      expect.fail(`examples/${folder} has no matching look. Run: npm run examples`);
+    }
     const folders = readdirSync(EXAMPLES_DIR, { withFileTypes: true }).filter((e) => e.isDirectory());
     expect(folders).toHaveLength(LOOKS.length);
   });
