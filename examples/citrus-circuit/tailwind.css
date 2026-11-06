@@ -1,0 +1,161 @@
+/* kernic — "citrus-circuit" Tailwind v4 theme (vibe: neon) */
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap");
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f6f8f0;
+  --surface: #eaece4;
+  --foreground: #13150e;
+  --muted-foreground: #676b5d;
+  --border-default: #d6d9cf;
+  --ring: #5e9600;
+  --primary: var(--color-primary-600);
+  --primary-hover: var(--color-primary-500);
+  --accent: var(--color-accent-500);
+  --elevation-xs: 0px 1px 2px 0px #13150e14;
+  --elevation-sm: 0px 1px 3px 0px #13150e1a, 0px 1px 2px -1px #13150e1a;
+  --elevation-md: 0px 4px 6px -1px #13150e1a, 0px 2px 4px -2px #13150e1a;
+  --elevation-lg: 0px 10px 15px -3px #13150e1a, 0px 4px 6px -4px #13150e1a;
+  --elevation-xl: 0px 20px 25px -5px #13150e1a, 0px 8px 10px -6px #13150e1a;
+}
+
+.dark {
+  --background: #13150e;
+  --surface: #252820;
+  --foreground: #f6f8f0;
+  --muted-foreground: #a0a496;
+  --border-default: #393c32;
+  --ring: #5e9600;
+  --primary: var(--color-primary-600);
+  --primary-hover: var(--color-primary-500);
+  --accent: var(--color-accent-500);
+  --elevation-xs: 0px 1px 2px 0px #13150e66;
+  --elevation-sm: 0px 1px 3px 0px #13150e73, 0px 1px 2px -1px #13150e73;
+  --elevation-md: 0px 4px 6px -1px #13150e80, 0px 2px 4px -2px #13150e80;
+  --elevation-lg: 0px 10px 15px -3px #13150e8c, 0px 4px 6px -4px #13150e8c;
+  --elevation-xl: 0px 20px 25px -5px #13150e99, 0px 8px 10px -6px #13150e99;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted-foreground);
+  --color-border-default: var(--border-default);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
+  --shadow-xs: var(--elevation-xs);
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
+  --shadow-xl: var(--elevation-xl);
+}
+
+@theme {
+  --color-primary-50: #eaffd9;
+  --color-primary-100: #d9f7c0;
+  --color-primary-200: #bfe69c;
+  --color-primary-300: #9ed06d;
+  --color-primary-400: #7ab62c;
+  --color-primary-500: #5e9600;
+  --color-primary-600: #4b7800;
+  --color-primary-700: #385c00;
+  --color-primary-800: #284400;
+  --color-primary-900: #192d00;
+  --color-primary-950: #0b1800;
+  --color-accent-50: #e8fbff;
+  --color-accent-100: #c5f5ff;
+  --color-accent-200: #a1e4f2;
+  --color-accent-300: #72cedf;
+  --color-accent-400: #29b4cb;
+  --color-accent-500: #0094a8;
+  --color-accent-600: #007687;
+  --color-accent-700: #005a67;
+  --color-accent-800: #00434d;
+  --color-accent-900: #002c34;
+  --color-accent-950: #00181c;
+  --color-neutral-50: #f6f8f0;
+  --color-neutral-100: #eaece4;
+  --color-neutral-200: #d6d9cf;
+  --color-neutral-300: #bcbfb4;
+  --color-neutral-400: #a0a496;
+  --color-neutral-500: #818577;
+  --color-neutral-600: #676b5d;
+  --color-neutral-700: #4e5246;
+  --color-neutral-800: #393c32;
+  --color-neutral-900: #252820;
+  --color-neutral-950: #13150e;
+  --background-image-primary: linear-gradient(120deg, #29b4cb 0%, #5e9600 52%, #284400 100%);
+  --background-image-mesh: radial-gradient(60% 85% at 12% 8%, #72cedf55 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #00a3bf63 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #5e960040 0%, transparent 62%), linear-gradient(180deg, #252820, #13150e);
+  --background-image-text: linear-gradient(92deg, #0094a8 0%, #7ab62c 55%, #00a3bf 100%);
+
+  --font-heading: "Space Grotesk", ui-serif, serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Fira Code", ui-monospace, monospace;
+
+  --text-xs: 0.800rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.894rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.000rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1.250rem;
+  --text-lg--line-height: 1.4;
+  --text-xl: 1.563rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.953rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 3.052rem;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 4.768rem;
+  --text-4xl--line-height: 1.1;
+  --text-5xl: 7.451rem;
+  --text-5xl--line-height: 1.05;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.04em;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0.125rem;
+  --radius-xl: 0.25rem;
+
+  --spacing: 0.25rem;
+  --spacing-1: 1rem;
+  --spacing-2: 2rem;
+  --spacing-3: 3rem;
+  --spacing-4: 4rem;
+  --spacing-6: 6rem;
+  --spacing-8: 8rem;
+  --spacing-12: 12rem;
+  --spacing-16: 16rem;
+  --spacing-0-5: 0.5rem;
+  --spacing-1-5: 1.5rem;
+
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --duration-slow: 360ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+  --container-sm: 40rem;
+  --container-md: 48rem;
+  --container-lg: 64rem;
+  --container-xl: 80rem;
+}

@@ -1,0 +1,161 @@
+/* kernic — "terminal" Tailwind v4 theme (vibe: tech) */
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f3f9f2;
+  --surface: #e7ede6;
+  --foreground: #111510;
+  --muted-foreground: #636c60;
+  --border-default: #d3dad1;
+  --ring: #009e46;
+  --primary: var(--color-primary-600);
+  --primary-hover: var(--color-primary-500);
+  --accent: var(--color-accent-500);
+  --elevation-xs: 0px 1px 2px 0px #11151014;
+  --elevation-sm: 0px 1px 3px 0px #1115101a, 0px 1px 2px -1px #1115101a;
+  --elevation-md: 0px 4px 6px -1px #1115101a, 0px 2px 4px -2px #1115101a;
+  --elevation-lg: 0px 10px 15px -3px #1115101a, 0px 4px 6px -4px #1115101a;
+  --elevation-xl: 0px 20px 25px -5px #1115101a, 0px 8px 10px -6px #1115101a;
+}
+
+.dark {
+  --background: #111510;
+  --surface: #232821;
+  --foreground: #f3f9f2;
+  --muted-foreground: #9ba599;
+  --border-default: #363d34;
+  --ring: #009e46;
+  --primary: var(--color-primary-600);
+  --primary-hover: var(--color-primary-500);
+  --accent: var(--color-accent-500);
+  --elevation-xs: 0px 1px 2px 0px #11151066;
+  --elevation-sm: 0px 1px 3px 0px #11151073, 0px 1px 2px -1px #11151073;
+  --elevation-md: 0px 4px 6px -1px #11151080, 0px 2px 4px -2px #11151080;
+  --elevation-lg: 0px 10px 15px -3px #1115108c, 0px 4px 6px -4px #1115108c;
+  --elevation-xl: 0px 20px 25px -5px #11151099, 0px 8px 10px -6px #11151099;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted-foreground);
+  --color-border-default: var(--border-default);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
+  --shadow-xs: var(--elevation-xs);
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
+  --shadow-xl: var(--elevation-xl);
+}
+
+@theme {
+  --color-primary-50: #e5ffe9;
+  --color-primary-100: #cafad1;
+  --color-primary-200: #a8eab4;
+  --color-primary-300: #7dd590;
+  --color-primary-400: #43bd66;
+  --color-primary-500: #009e46;
+  --color-primary-600: #007f37;
+  --color-primary-700: #006128;
+  --color-primary-800: #00481c;
+  --color-primary-900: #003010;
+  --color-primary-950: #001a06;
+  --color-accent-50: #fff6e3;
+  --color-accent-100: #fee9bd;
+  --color-accent-200: #f0d497;
+  --color-accent-300: #ddb966;
+  --color-accent-400: #c89a1b;
+  --color-accent-500: #a47c00;
+  --color-accent-600: #846300;
+  --color-accent-700: #654b00;
+  --color-accent-800: #4b3700;
+  --color-accent-900: #322400;
+  --color-accent-950: #1c1200;
+  --color-neutral-50: #f3f9f2;
+  --color-neutral-100: #e7ede6;
+  --color-neutral-200: #d3dad1;
+  --color-neutral-300: #b8c1b6;
+  --color-neutral-400: #9ba599;
+  --color-neutral-500: #7c877a;
+  --color-neutral-600: #636c60;
+  --color-neutral-700: #4a5348;
+  --color-neutral-800: #363d34;
+  --color-neutral-900: #232821;
+  --color-neutral-950: #111510;
+  --background-image-primary: linear-gradient(120deg, #c89a1b 0%, #009e46 52%, #00481c 100%);
+  --background-image-mesh: radial-gradient(60% 85% at 12% 8%, #ddb96655 0%, transparent 60%), radial-gradient(55% 75% at 88% 10%, #009eda63 0%, transparent 58%), radial-gradient(80% 95% at 55% 96%, #009e4640 0%, transparent 62%), linear-gradient(180deg, #232821, #111510);
+  --background-image-text: linear-gradient(92deg, #a47c00 0%, #43bd66 55%, #009eda 100%);
+
+  --font-heading: "Space Grotesk", ui-serif, serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --text-xs: 0.889rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.943rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.000rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.4;
+  --text-xl: 1.266rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.424rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.802rem;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 2.281rem;
+  --text-4xl--line-height: 1.1;
+  --text-5xl: 2.887rem;
+  --text-5xl--line-height: 1.05;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.04em;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0.125rem;
+  --radius-xl: 0.25rem;
+
+  --spacing: 0.25rem;
+  --spacing-1: 1rem;
+  --spacing-2: 2rem;
+  --spacing-3: 3rem;
+  --spacing-4: 4rem;
+  --spacing-6: 6rem;
+  --spacing-8: 8rem;
+  --spacing-12: 12rem;
+  --spacing-16: 16rem;
+  --spacing-0-5: 0.5rem;
+  --spacing-1-5: 1.5rem;
+
+  --duration-fast: 100ms;
+  --duration-base: 180ms;
+  --duration-slow: 280ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+  --container-sm: 40rem;
+  --container-md: 48rem;
+  --container-lg: 64rem;
+  --container-xl: 80rem;
+}
